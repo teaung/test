@@ -1,0 +1,16 @@
+spring:
+  profiles:
+    active: topics,sender,remote
+
+  rabbitmq:
+    host: 10.5.133.180
+    username: guest
+    password: guest
+
+logging:
+  level:
+    org: ERROR
+
+tutorial:
+  client:
+    duration: 10000
