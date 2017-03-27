@@ -6,7 +6,20 @@ spring:
     host: 10.5.133.180
     username: guest
     password: guest
-
+    
+  datasource:
+    url: jdbc:mysql://10.5.133.179:3306/test
+    username: root
+    password: dev@ats
+    driver-class-name: com.mysql.jdbc.Driver
+    
+  jpa:
+    database:
+      MYSQL
+    show-sql: false
+    hibernate:
+      ddl-auto: update
+      
 logging:
   level:
     org: ERROR
@@ -14,3 +27,5 @@ logging:
 tutorial:
   client:
     duration: 10000
+    
+ 
