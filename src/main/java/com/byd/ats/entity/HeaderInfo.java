@@ -1,7 +1,5 @@
 package com.byd.ats.entity;
-
 public class HeaderInfo {
-
 	private short inface_type;
 	private int send_vender;
 	private int receive_vender;
@@ -12,6 +10,7 @@ public class HeaderInfo {
 	private int msg_snum_side;
 	private int msg_cnum_previous_msg;
 	private byte protocol_version;
+	
 	public short getInface_type() {
 		return inface_type;
 	}

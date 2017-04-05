@@ -1,4 +1,4 @@
-package com.byd.ats.controller;
+/*package com.byd.ats.controller;
 
 import java.util.List;
 
@@ -24,3 +24,4 @@ public class PersonController {
 		return personRepository.findAll();
 	}
 }
+*/

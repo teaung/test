@@ -13,13 +13,9 @@ public class Client2serZcCommand {
 	private int TSR_VALUE;
 	@JsonProperty
 	private int TSR_NUM;
-/*	@JsonProperty
-	private String TSR_TRACKLIST;*/
-	//@JsonProperty
-/*	private int[] TSR_TRACKLIST;*/
 	@JsonProperty
-	private String TSR_TRACKLIST;
-	
+	private int[] TSR_TRACKLIST;
+
 	@JsonIgnore
 	public String getCMD_CLASS() {
 		return CMD_CLASS;
@@ -52,7 +48,7 @@ public class Client2serZcCommand {
 	public void setTSR_NUM(int tSR_NUM) {
 		TSR_NUM = tSR_NUM;
 	}
-/*	@JsonIgnore
+	@JsonIgnore
 	public int[] getTSR_TRACKLIST() {
 		return TSR_TRACKLIST;
 	}
@@ -60,12 +56,7 @@ public class Client2serZcCommand {
 	public void setTSR_TRACKLIST(int[] tSR_TRACKLIST) {
 		TSR_TRACKLIST = tSR_TRACKLIST;
 	}
-*/
-	public String getTSR_TRACKLIST() {
-		return TSR_TRACKLIST;
-	}
-	public void setTSR_TRACKLIST(String tSR_TRACKLIST) {
-		TSR_TRACKLIST = tSR_TRACKLIST;
-	}
+
+
 	
 }

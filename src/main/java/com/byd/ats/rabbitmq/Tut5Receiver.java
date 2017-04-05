@@ -16,7 +16,12 @@
 package com.byd.ats.rabbitmq;
 
 import java.io.IOException;
+import java.util.Arrays;
+import java.util.Date;
+import java.util.HashMap;
 import java.util.Map;
+import java.util.Timer;
+import java.util.TimerTask;
 
 import org.springframework.amqp.core.TopicExchange;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
@@ -41,6 +46,7 @@ import com.byd.ats.entity.Client2serZcCommand;
 import com.byd.ats.entity.HeaderInfo;
 import com.byd.ats.entity.MsgHeader;
 import com.byd.ats.entity.TsrRetrunCode;
+import com.byd.ats.util.MyTimerTask;
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonMappingException;
@@ -59,7 +65,8 @@ public class Tut5Receiver {
 	
 	@Autowired
 	private RabbitTemplate template;
-	
+/*	@Autowired
+	private Client2serJsonCommandRepository client2serJsonCommandRepository;*/
 	private String ats2cicmdKey= "ats2cu.ci.command";
 	private String ats2cistaKey = "ats2cu.ci.ats_status";
 	private String ats2vobccmdKey="ats2cu.vobc.command";
@@ -77,6 +84,8 @@ public class Tut5Receiver {
 	 Ats2zcVerifyTsr verify_tsr =null;
 	Ats2zcMsgExecuteTsr ats2zc_executetsr =null;
 	Ats2zcExecuteTsr execute_tsr =null;
+	Map<String,Timer> detainmap = new HashMap<String,Timer>();
+	Map<String,Timer> crossmap = new HashMap<String,Timer>();
 	@RabbitListener(queues = "#{autoDeleteQueue1.name}")
 	public void receive1(String in) throws InterruptedException {
 		System.out.println("receive1 ....." + in);
@@ -104,6 +113,11 @@ public class Tut5Receiver {
 					Client2serZcCommand cmd = mapper.readValue(in, Client2serZcCommand.class);
 					send2ZC(cmd,mapper);
 				}
+/*				CLient2serJsonCommand jsonCommand = new CLient2serJsonCommand();
+				jsonCommand.setCreatetime(new Date());
+				jsonCommand.setJson(in);
+				jsonCommand.setUsername("zhang.yuan7");
+				client2serJsonCommandRepository.save(jsonCommand);*/
 			}
 
 /*			for(String key : tempmap.keySet())
@@ -138,7 +152,7 @@ public class Tut5Receiver {
 
 	public void send2ZC(Client2serZcCommand cmd,ObjectMapper mapper) throws JsonProcessingException
 	{
-		if(cmd.getCMD_TYPE() == 256)
+		if(cmd.getCMD_TYPE() == 100)
 		{
 			ats2zc_verifytsr = new Ats2zcMsgVerifyTsr();
 			//if(cmd.getCMD_TYPE())
@@ -151,9 +165,9 @@ public class Tut5Receiver {
 			 ats2zc_verifytsr.setHeader_info_ver(header_info);
 			 ats2zc_verifytsr.setMsg_header_ver(msg_header);
 			 ats2zc_verifytsr.setVerify_tsr(verify_tsr);
-			 System.out.println("test........cmd.getTSR_TRACKLIST()1"+cmd.getTSR_TRACKLIST());
-			 //ats2zc_verifytsr.setLg_t_id(cmd.getTSR_TRACKLIST());
-			// ats2zc_verifytsr.setLg_id(cmd.getTSR_TRACKLIST());
+			// String s = Arrays.toString(cmd.getTSR_TRACKLIST());
+			//int[] railid =  string2intArray(cmd.getTSR_TRACKLIST());
+			 ats2zc_verifytsr.setLg_id(cmd.getTSR_TRACKLIST());
 			 String obj =  mapper.writeValueAsString(ats2zc_verifytsr);
 			 template.convertAndSend("topic.ats2cu", ats2zcTsr1cmdKey, obj);
 			 ats2zc_verifytsr = null;
@@ -169,7 +183,7 @@ public class Tut5Receiver {
 			 template.convertAndSend("topic.serv2cli", "serv2cli.traincontrol.command_back", obj1);
 			 System.out.println("return code" + obj1 + "'");
 		}
-		if(cmd.getCMD_TYPE() == 257)
+		if(cmd.getCMD_TYPE() == 101)
 		{
 			ats2zc_executetsr = new Ats2zcMsgExecuteTsr(); 
 			header_info = new HeaderInfo();
@@ -181,9 +195,8 @@ public class Tut5Receiver {
 			ats2zc_executetsr.setHeader_info_exec(header_info);
 			ats2zc_executetsr.setMsg_header_exec(msg_header);
 			ats2zc_executetsr.setExecue_tsr(execute_tsr);
-			System.out.println("test........cmd.getTSR_TRACKLIST()2"+cmd.getTSR_TRACKLIST());
-			//ats2zc_executetsr.setLg_t_id(cmd.getTSR_TRACKLIST());
-			//ats2zc_executetsr.setLg_id(cmd.getTSR_TRACKLIST());
+			//int[] railid =  string2intArray(cmd.getTSR_TRACKLIST());
+			ats2zc_executetsr.setLg_id(cmd.getTSR_TRACKLIST());
 			 String obj =  mapper.writeValueAsString(ats2zc_executetsr);
 			 template.convertAndSend("topic.ats2cu", ats2zcTsr2cmdKey, obj);
 			 ats2zc_executetsr = null;
@@ -224,7 +237,7 @@ public class Tut5Receiver {
 		System.out.println("Sent to [ci] '" + obj + "'");
 	}
 
-	public void send2vobc(Client2serCommand  cmd,ObjectMapper mapper) throws JsonProcessingException
+	public void send2vobc(Client2serCommand  cmd,ObjectMapper mapper) throws IOException
 	{
 		String obj = "";
 		vobccmd = new Ats2vobcMsgComm();
@@ -234,51 +247,132 @@ public class Tut5Receiver {
 		vobccmd.setHeader_info(header_info);
 		vobccmd.setMsg_header(msg_header);
 		ats2vobc_ato_command = new Ats2vobcAtoCommand();
+		ats2vobc_ato_command.setTrain_order_num((short)505);
 		//发送扣车命令--现在没法区别中心扣车和站空扣车
-		if(cmd.getCMD_TYPE()>=49&&cmd.getCMD_TYPE()<=52)
+		if(cmd.getCMD_TYPE()==31 ||cmd.getCMD_TYPE()==33)
 		{
-			ats2vobc_ato_command.setDetain_command((byte)cmd.getCMD_TYPE());
+			ats2vobc_ato_command.setDetain_command((short)0x55);
+			ats2vobc_ato_command.setNext_station_id((short)cmd.getCMD_PARAMETER());
+			vobccmd.setAts2vobc_ato_command(ats2vobc_ato_command);
+			obj =  mapper.writeValueAsString(vobccmd);
+			template.convertAndSend("topic.ats2cu", ats2vobccmdKey, obj);
+			Timer timer = new Timer(); 
+			MyTimerTask crossTimerTask = new MyTimerTask(template,obj,ats2vobccmdKey);
+			timer.scheduleAtFixedRate(crossTimerTask,2000,2000);
+			detainmap.put( Integer.toString(cmd.getCMD_PARAMETER()), timer);
+		}
+		//取消中心扣车和车站扣车
+		if(cmd.getCMD_TYPE()==32 ||cmd.getCMD_TYPE()==34)
+		{
+			if(cmd.getCMD_PARAMETER()>0)
+			{
+				Timer detaintimer = (Timer) detainmap.get(Integer.toString(cmd.getCMD_PARAMETER()));
+				if(detaintimer !=null)
+				{
+					detaintimer.cancel();
+					detainmap.remove(Integer.toString(cmd.getCMD_PARAMETER()));
+				}
+			}
+			ats2vobc_ato_command.setDetain_command((short)0xAA);
 			ats2vobc_ato_command.setNext_station_id((short)cmd.getCMD_PARAMETER());
 			vobccmd.setAts2vobc_ato_command(ats2vobc_ato_command);
 			obj =  mapper.writeValueAsString(vobccmd);
 			template.convertAndSend("topic.ats2cu", ats2vobccmdKey, obj);
 		}
 		//跳停指令
-		if(cmd.getCMD_TYPE() == 258 || cmd.getCMD_TYPE() == 259)
+		if(cmd.getCMD_TYPE() == 102)
 		{
-			ats2vobc_ato_command.setCross_station_command((short)cmd.getCMD_TYPE());
+			//ats2vobc_ato_command.setDetain_command((short)0x55);
+			ats2vobc_ato_command.setCross_station_command((short)0x55);
+			ats2vobc_ato_command.setNext_station_id((short)cmd.getCMD_PARAMETER());
+			vobccmd.setAts2vobc_ato_command(ats2vobc_ato_command);
+			 obj =  mapper.writeValueAsString(vobccmd);
+			template.convertAndSend("topic.ats2cu", ats2vobccmdKey, obj);
+			Timer crosstimer = new Timer(); 
+			MyTimerTask crossTimerTask = new MyTimerTask(template,obj,ats2vobccmdKey);
+			crosstimer.scheduleAtFixedRate(crossTimerTask,2000,2000);
+			crossmap.put(Integer.toString(cmd.getCMD_PARAMETER()), crosstimer);
+		}
+		//取消跳停指令
+		if(cmd.getCMD_TYPE() == 103)
+		{
+			if(cmd.getCMD_PARAMETER()>0)
+			{
+				Timer crosstimer = (Timer) crossmap.get(Integer.toString(cmd.getCMD_PARAMETER()));
+				if(crosstimer !=null)
+				{
+					crosstimer.cancel();
+					crossmap.remove(Integer.toString(cmd.getCMD_PARAMETER()));
+				}
+			}
+			//ats2vobc_ato_command.setDetain_command((short)0x55);
+			ats2vobc_ato_command.setCross_station_command((short)0x55);
 			ats2vobc_ato_command.setNext_station_id((short)cmd.getCMD_PARAMETER());
 			vobccmd.setAts2vobc_ato_command(ats2vobc_ato_command);
 			 obj =  mapper.writeValueAsString(vobccmd);
 			template.convertAndSend("topic.ats2cu", ats2vobccmdKey, obj);
 		}
 		//提前发车
-		if(cmd.getCMD_TYPE() == 260)
+		if(cmd.getCMD_TYPE() == 104)
 		{
-			ats2vobc_ato_command.setStop_station_time((short)cmd.getCMD_TYPE());
-			ats2vobc_ato_command.setNext_station_id((short)cmd.getCMD_PARAMETER());
-			vobccmd.setAts2vobc_ato_command(ats2vobc_ato_command);
-			 obj =  mapper.writeValueAsString(vobccmd);
-			template.convertAndSend("topic.ats2cu", ats2vobccmdKey, obj);
+			String response = (String) template.convertSendAndReceive("tut.rpc", "rpc",cmd.getCMD_PARAMETER() );
+			//System.out.println("debug response ..."+response);
+			Map<String,Object> resmap = mapper.readValue(response, Map.class);
+			if(resmap.size()>0) //85是停稳状态，170是未停稳
+			{
+				ats2vobc_ato_command.setStop_station_time((short)0x0001);
+				//ats2vobc_ato_command.setNext_station_id((short));
+				ats2vobc_ato_command.setService_num(Short.parseShort(resmap.get("service_num").toString()));
+				ats2vobc_ato_command.setLine_num(Short.parseShort(resmap.get("line_num").toString()));
+				ats2vobc_ato_command.setTrain_line_num(Short.parseShort(resmap.get("train_line_num").toString()));
+				ats2vobc_ato_command.setTrain_num(Short.parseShort(resmap.get("train_num").toString()));
+				ats2vobc_ato_command.setOrigin_line_num(Short.parseShort(resmap.get("origin_line_num").toString()));
+				ats2vobc_ato_command.setTrain_order_num(Short.parseShort(resmap.get("train_order_num").toString()));
+				ats2vobc_ato_command.setDestin_line_num(Short.parseShort(resmap.get("destin_line_num").toString()));
+				ats2vobc_ato_command.setDestin_num(Integer.parseInt(resmap.get("destin_num").toString()));
+				ats2vobc_ato_command.setDirection_plan(Short.parseShort(resmap.get("direction_train").toString()));
+				vobccmd.setAts2vobc_ato_command(ats2vobc_ato_command);
+				 obj =  mapper.writeValueAsString(vobccmd);
+				template.convertAndSend("topic.ats2cu", ats2vobccmdKey, obj);
+			}
+
 		}
-		//标记ATP命令
-		if(cmd.getCMD_TYPE() == 265 || cmd.getCMD_TYPE() == 272)
+		//标记ATP命令---目前确认有列车识别跟踪来处理.
+/*		if(cmd.getCMD_TYPE() == 109 || cmd.getCMD_TYPE() == 110)
 		{
 			
-		}
+		}*/
 		//取消全线扣车
 		if(cmd.getCMD_TYPE() ==111)
 		{
-			ats2vobc_ato_command.setDetain_command((byte)cmd.getCMD_TYPE());
+			if(detainmap.size()>0)
+			{
+				for(Map.Entry<String,Timer> m : detainmap.entrySet())
+				{
+					m.getValue().cancel();
+					detainmap.remove(m.getKey());
+				}
+			}
+/*			ats2vobc_ato_command.setDetain_command((byte)cmd.getCMD_TYPE());
 			vobccmd.setAts2vobc_ato_command(ats2vobc_ato_command);
 			obj=  mapper.writeValueAsString(vobccmd);
-			template.convertAndSend("topic.ats2cu", ats2vobccmdKey, obj);
+			template.convertAndSend("topic.ats2cu", ats2vobccmdKey, obj);*/
 		}
 		System.out.println(" Sent to [vobc] '" + obj + "'");
 		vobccmd = null;
 		header_info = null;
 		msg_header = null;
 		ats2vobc_ato_command = null;
+	}
+	private int[] string2intArray(String railid)
+	{
+		String[] strarr = railid.split(",");
+		int[] ids = new int[strarr.length];
+		for(int i=0;i<strarr.length;i++)
+		{
+			ids[i]=Integer.parseInt(strarr[i]);
+		}
+		return ids;
 	}
 
 }

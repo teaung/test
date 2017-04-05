@@ -5,7 +5,7 @@
 
 	<groupId>com.byd.ats</groupId>
 	<artifactId>serv05-traincontrol</artifactId>
-	<version>0.0.1</version>
+	<version>0.0.1.4</version>
 	<packaging>jar</packaging>
 
 	<name>serv05-traincontrol</name>
@@ -33,7 +33,7 @@
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-aop</artifactId>
 		</dependency>
-		<dependency>
+		<!--  <dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-data-jpa</artifactId>
 		</dependency>
@@ -45,7 +45,7 @@
 			<groupId>mysql</groupId>
 			<artifactId>mysql-connector-java</artifactId>
 			<scope>runtime</scope>
-		</dependency>
+		</dependency> -->
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-web</artifactId>

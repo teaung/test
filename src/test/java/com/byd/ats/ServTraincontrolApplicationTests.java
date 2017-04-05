@@ -14,8 +14,8 @@ import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.context.WebApplicationContext;
 
-import com.byd.ats.entity.Person;
-import com.byd.ats.service.PersonRepository;
+/*import com.byd.ats.entity.Person;
+import com.byd.ats.service.PersonRepository;*/
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 

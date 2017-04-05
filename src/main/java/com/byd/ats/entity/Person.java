@@ -1,4 +1,4 @@
-package com.byd.ats.entity;
+/*package com.byd.ats.entity;
 
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
@@ -37,3 +37,4 @@ public class Person {
 	
 	
 }
+*/

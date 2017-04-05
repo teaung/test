@@ -1,14 +1,14 @@
 spring:
   profiles:
-    active: topics,sender,remote
+    active: rpc,sender,remote
 
   rabbitmq:
-    host: 10.5.133.180
+    host: 10.5.133.220
     username: guest
     password: guest
     
   datasource:
-    url: jdbc:mysql://10.5.133.179:3306/test
+    url: jdbc:mysql://10.5.133.219:3306/test
     username: root
     password: dev@ats
     driver-class-name: com.mysql.jdbc.Driver
