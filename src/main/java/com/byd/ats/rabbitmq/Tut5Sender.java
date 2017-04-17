@@ -46,9 +46,9 @@ public class Tut5Sender {
 	private final String[] keys = {"ats2cu.ci.command", "ats2cu.vobc.command", "ats2cu.zc.tsr1.command",
 			"ats2cu.zc.tsr2.command","ats2cu.zc.boot_tsr_ack"};
 
-	/*@Scheduled(fixedDelay = 1000, initialDelay = 500)
+	@Scheduled(fixedDelay = 1000, initialDelay = 500)
 	public void send() {
-		StringBuilder builder = new StringBuilder("Hello to ");
+/*		StringBuilder builder = new StringBuilder("Hello to ");
 		if (++this.index == keys.length) {
 			this.index = 0;
 		}
@@ -56,13 +56,14 @@ public class Tut5Sender {
 		builder.append(key).append(' ');
 		builder.append(Integer.toString(++this.count));
 		String message = builder.toString();
-		template.convertAndSend(topic.getName(), key, message);
-		System.out.println(" [x] Sent '" + message + "'");
-	}*/
+		template.convertAndSend(topic.getName(), key, message);*/
+		System.out.println(" [x] Sent11111111");
+	}
 
-	public void send(String msg) {
+	@Scheduled(fixedDelay = 500, initialDelay = 500)
+	public void test() {
 		//StringBuilder builder = new StringBuilder("Hello to ");
-		StringBuilder builder = new StringBuilder("'" + msg + "' ");
+/*		StringBuilder builder = new StringBuilder("'" + msg + "' ");
 		if (++this.index == keys.length) {
 			this.index = 0;
 		}
@@ -70,7 +71,7 @@ public class Tut5Sender {
 		builder.append(key).append(' ');
 		builder.append(Integer.toString(++this.count));
 		String message = builder.toString();
-		template.convertAndSend(topic_test.getName(), key, message);
-		System.out.println(" [x] Sent '" + message + "'");
+		template.convertAndSend(topic_test.getName(), key, message);*/
+		System.out.println(" [x] Sent 222222222");
 	}
 }

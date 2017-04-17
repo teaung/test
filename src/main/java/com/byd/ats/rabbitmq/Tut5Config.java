@@ -52,6 +52,13 @@ public class Tut5Config {
 	public TopicExchange topicServ2Cli() {
 		return new TopicExchange("topic.serv2cli");
 	}
+	
+	@Bean
+	public TopicExchange topicServ2Cont() {
+		return new TopicExchange("topic.ats.traintrace");
+		//return new TopicExchange("topic.cu2ats");
+	}
+	
 	/*
 	@Bean
 	public TopicExchange topicCli2Serv() {
@@ -71,10 +78,10 @@ public class Tut5Config {
 			return new AnonymousQueue();
 		}
 
-/*		@Bean
+		@Bean
 		public Queue autoDeleteQueue2() {
 			return new AnonymousQueue();
-		}*/
+		}
 
 		@Bean
 		public Binding binding1a(@Qualifier("topicTest") TopicExchange topic, Queue autoDeleteQueue1) {
@@ -83,20 +90,25 @@ public class Tut5Config {
 
 /*		@Bean
 		public Binding binding1b(@Qualifier("topicCU2ATS") TopicExchange topic, Queue autoDeleteQueue1) {
-			return BindingBuilder.bind(autoDeleteQueue1).to(topic).with("*.*.rabbit");
-		}
-
-		@Bean
-		public Binding binding2a(@Qualifier("topicTest") TopicExchange topic, Queue autoDeleteQueue2) {
-			return BindingBuilder.bind(autoDeleteQueue2).to(topic).with("lazy.#");
+			return BindingBuilder.bind(autoDeleteQueue1).to(topic).with("cu2ats.vobc.ato.status");
 		}*/
+
+				@Bean
+		public Binding binding2a(@Qualifier("topicServ2Cont") TopicExchange topic, Queue autoDeleteQueue2) {
+			//return BindingBuilder.bind(autoDeleteQueue2).to(topic).with("cu2ats.vobc.ato.status");
+				return BindingBuilder.bind(autoDeleteQueue2).to(topic).with("ats.traintrace.station.arrive");
+		}
 
 	}
 
 	//@Profile("sender")
-	@Bean
+/*	@Bean
 	public Tut5Sender sender() {
 		return new Tut5Sender();
-	}
-
+	}*/
+/*	@Bean
+	public DetainTask task()
+	{
+		return new DetainTask();
+	}*/
 }
