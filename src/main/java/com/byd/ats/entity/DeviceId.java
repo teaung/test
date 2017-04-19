@@ -5,10 +5,10 @@ public class DeviceId {
 	private short[] s_id = new short[AtsPub.SIGNAL_NUM];
 	private short[] sw_id= new short[AtsPub.SWITCH_NUM];
 	private short[] t_id= new short[AtsPub.PHY_TRACK_NUM];
-	private short[] lt_id= new short[AtsPub.LOGIC_TRACK_NUM];
+	private int[] lt_id= new int[AtsPub.LOGIC_TRACK_NUM];
 	private short[] r_id= new short[AtsPub.ROUTE_NUM];
 	private short[] autopass_id= new short[AtsPub.AUTOPASS_NUM];
-	private short[] d_id= new short[AtsPub.DOOR_NUM];
+	private int[] d_id= new int[AtsPub.DOOR_NUM];
 	private short[] esp_id= new short[AtsPub.ESP_NUM];
 	private short[] keep_train_id= new short[AtsPub.KEEP_TRAIN_NUM];
 	private short[] autoback_id= new short[AtsPub.AUTOBACK_NUM];
@@ -33,10 +33,10 @@ public class DeviceId {
 	public void setT_id(short[] t_id) {
 		this.t_id = t_id;
 	}
-	public short[] getLt_id() {
+	public int[] getLt_id() {
 		return lt_id;
 	}
-	public void setLt_id(short[] lt_id) {
+	public void setLt_id(int[] lt_id) {
 		this.lt_id = lt_id;
 	}
 	public short[] getR_id() {
@@ -51,10 +51,10 @@ public class DeviceId {
 	public void setAutopass_id(short[] autopass_id) {
 		this.autopass_id = autopass_id;
 	}
-	public short[] getD_id() {
+	public int[] getD_id() {
 		return d_id;
 	}
-	public void setD_id(short[] d_id) {
+	public void setD_id(int[] d_id) {
 		this.d_id = d_id;
 	}
 	public short[] getEsp_id() {

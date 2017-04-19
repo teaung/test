@@ -55,6 +55,7 @@ import com.byd.ats.entity.TraintraceInfo;
 import com.byd.ats.entity.TsrRetrunCode;
 import com.byd.ats.util.MyTimerTask;
 import com.fasterxml.jackson.core.JsonParseException;
+import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -64,7 +65,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
  * @author Gary Russell
  * @author Scott Deeg
  */
-public class Tut5Receiver {
+public class Tut5Receiver implements ReceiverInterface{
 	
 	//@Autowired
 	//@Qualifier("topicATS2CU")
@@ -80,7 +81,7 @@ public class Tut5Receiver {
 	private String ats2zcTsr1cmdKey = "ats2cu.zc.tsr1.command";
 	private String ats2zcTsr2cmdKey = "ats2cu.zc.tsr2.command";
 	private String ats2zcTsrackKey="ats2cu.zc.boot_tsr_ack";
-	private ObjectMapper mapper = new ObjectMapper();;
+	private ObjectMapper mapper = new ObjectMapper();
 	private Ats2ciMsgComm cimsg  =null;
 	private HeaderInfo header_info=null;
 	private MsgHeader msg_header=null;
@@ -91,17 +92,17 @@ public class Tut5Receiver {
 	private Ats2zcVerifyTsr verify_tsr =null;
 	private Ats2zcMsgExecuteTsr ats2zc_executetsr =null;
 	private Ats2zcExecuteTsr execute_tsr =null;
-	private Map<String,Timer> detainmapTask = new HashMap<String,Timer>();
+	public Map<String,Timer> detainmapTask = new HashMap<String,Timer>();
 	private Map<String,Timer> crossmapTask = new HashMap<String,Timer>();
-	private List<TraintraceInfo> alldetainlist = new CopyOnWriteArrayList<TraintraceInfo>();
+	private Map<Integer,Timer> trainCrossTask = new HashMap<Integer,Timer>();
+	public List<TraintraceInfo> alldetainlist = new CopyOnWriteArrayList<TraintraceInfo>();
 	private List<TraintraceInfo> allcrosslist = new CopyOnWriteArrayList<TraintraceInfo>();
-	
+	public static List<Client2serCommand> ciStack = new ArrayList<Client2serCommand>();
 	@RabbitListener(queues = "#{autoDeleteQueue1.name}")
-	public void receive1(String in) throws InterruptedException {
+	public void receive(String in){
 		System.out.println("receive1 ....." + in);
-		//receive(in, 1);
 		try {
-			
+			mapper.configure(JsonParser.Feature.ALLOW_NUMERIC_LEADING_ZEROS, true);
 			Map<String,Object> tempmap = mapper.readValue(in, Map.class);
 			
 			if(tempmap.size()>0&&tempmap.containsKey("CMD_CLASS")&&!tempmap.get("CMD_CLASS").toString().equals(""))
@@ -215,7 +216,7 @@ public class Tut5Receiver {
 	    msgcmd = new AtsMsgCommand();
 		msgcmd.setCommand_num(1);
 		msgcmd.setCommand_type(cmd.getCMD_TYPE());
-		msgcmd.setObject_id(cmd.getCMD_PARAMETER());
+		msgcmd.setObject_id(cmd.getCMD_PARAMETER()[0]);
 		cimsg.setHeader_info(header_info);
 		cimsg.setMsg_header(msg_header);
 		cimsg.setAts_msg_command(msgcmd);
@@ -225,6 +226,7 @@ public class Tut5Receiver {
 		try {
 			//TopicExchange topic_ats2cu  =new TopicExchange("topic.ats2cu");
 			template.convertAndSend("topic.ats2cu", ats2cicmdKey, obj);
+			ciStack.add(cmd);//保存ci发送的状态
 			header_info =null;
 			msg_header = null;
 			msgcmd = null;
@@ -250,29 +252,29 @@ public class Tut5Receiver {
 		//发送扣车命令--现在没法区别中心扣车和站空扣车-------还要下发给CI
 		if(cmd.getCMD_TYPE()==31 ||cmd.getCMD_TYPE()==33)
 		{
-			ats2vobc_ato_command.setDetain_command((short)0x55);
-			ats2vobc_ato_command.setNext_station_id((short)cmd.getCMD_PARAMETER());
+/*			ats2vobc_ato_command.setDetain_command((short)0x55);
+			ats2vobc_ato_command.setNext_station_id((short)cmd.getCMD_PARAMETER()[0]);
 			vobccmd.setAts2vobc_ato_command(ats2vobc_ato_command);
 			obj =  mapper.writeValueAsString(vobccmd);
-			template.convertAndSend("topic.ats2cu", ats2vobccmdKey, obj);
+			template.convertAndSend("topic.ats2cu", ats2vobccmdKey, obj);*/
 			Timer timer = new Timer();  //timer是个单线程，可以在不同时间段调度多个任务
-			MyTimerTask crossTimerTask = new MyTimerTask(template,cmd,alldetainlist,null);
+			MyTimerTask crossTimerTask = new MyTimerTask(template,cmd,alldetainlist);
 			timer.scheduleAtFixedRate(crossTimerTask,1000,1000);
-			detainmapTask.put( Integer.toString(cmd.getCMD_PARAMETER()), timer);
-			template.convertAndSend("topic.ats2cu", ats2cicmdKey, obj);
+			detainmapTask.put( Integer.toString(cmd.getCMD_PARAMETER()[0]), timer);
+			//template.convertAndSend("topic.ats2cu", ats2cicmdKey, obj);
 		}
 		//取消中心扣车和车站扣车
 		if(cmd.getCMD_TYPE()==32 ||cmd.getCMD_TYPE()==34)
 		{
-			if(cmd.getCMD_PARAMETER()>0)
+			if(cmd.getCMD_PARAMETER()[0]>0)
 			{
-				Timer detaintimer = (Timer) detainmapTask.get(Integer.toString(cmd.getCMD_PARAMETER()));
-				detainmapTask.remove(Integer.toString(cmd.getCMD_PARAMETER()));//取消当前任务
+				Timer detaintimer = (Timer) detainmapTask.get(Integer.toString(cmd.getCMD_PARAMETER()[0]));
+				detainmapTask.remove(Integer.toString(cmd.getCMD_PARAMETER()[0]));//取消当前任务
 				if(detaintimer !=null)
 				{
 					detaintimer.cancel();
 					ats2vobc_ato_command.setDetain_command((short)0xAA);
-					ats2vobc_ato_command.setNext_station_id((short)cmd.getCMD_PARAMETER());
+					ats2vobc_ato_command.setNext_station_id((short)cmd.getCMD_PARAMETER()[0]);
 					vobccmd.setAts2vobc_ato_command(ats2vobc_ato_command);
 					obj =  mapper.writeValueAsString(vobccmd);
 					template.convertAndSend("topic.ats2cu", ats2vobccmdKey, obj);
@@ -281,7 +283,7 @@ public class Tut5Receiver {
 				{
 						for(int i=0;i<alldetainlist.size();i++)
 						{
-							if( alldetainlist.get(i).getNext_station_id()==(short)cmd.getCMD_PARAMETER())
+							if( alldetainlist.get(i).getNext_station_id()==(short)cmd.getCMD_PARAMETER()[0])
 							{
 								//System.out.println("remove ...."+alldetainlist.get(i).getNext_station_id()+"   "+i);
 								
@@ -303,23 +305,23 @@ public class Tut5Receiver {
 			 obj =  mapper.writeValueAsString(vobccmd);
 			template.convertAndSend("topic.ats2cu", ats2vobccmdKey, obj);*/
 			Timer crosstimer = new Timer(); 
-			MyTimerTask crossTimerTask = new MyTimerTask(template,cmd,null,allcrosslist);
+			MyTimerTask crossTimerTask = new MyTimerTask(template,cmd,allcrosslist);
 			crosstimer.scheduleAtFixedRate(crossTimerTask,1000,1000);
-			crossmapTask.put(Integer.toString(cmd.getCMD_PARAMETER()), crosstimer);
+			crossmapTask.put(Integer.toString(cmd.getCMD_PARAMETER()[0]), crosstimer);
 		}
 		//取消跳停指令
 		if(cmd.getCMD_TYPE() == 103)
 		{
-			if(cmd.getCMD_PARAMETER()>0)
+			if(cmd.getCMD_PARAMETER()[0]>0)
 			{
-				Timer crosstimer = (Timer) crossmapTask.get(Integer.toString(cmd.getCMD_PARAMETER()));
-				crossmapTask.remove(Integer.toString(cmd.getCMD_PARAMETER()));
+				Timer crosstimer = (Timer) crossmapTask.get(Integer.toString(cmd.getCMD_PARAMETER()[0]));
+				crossmapTask.remove(Integer.toString(cmd.getCMD_PARAMETER()[0]));
 				if(crosstimer !=null)
 				{
 					crosstimer.cancel();
 					//ats2vobc_ato_command.setDetain_command((short)0x55);
 					ats2vobc_ato_command.setCross_station_command((short)0x55);
-					ats2vobc_ato_command.setNext_station_id((short)cmd.getCMD_PARAMETER());
+					ats2vobc_ato_command.setNext_station_id((short)cmd.getCMD_PARAMETER()[0]);
 					vobccmd.setAts2vobc_ato_command(ats2vobc_ato_command);
 					obj =  mapper.writeValueAsString(vobccmd);
 					template.convertAndSend("topic.ats2cu", ats2vobccmdKey, obj);
@@ -329,7 +331,7 @@ public class Tut5Receiver {
 			{
 					for(int i=0;i<allcrosslist.size();i++)
 					{
-						if( allcrosslist.get(i).getNext_station_id()==(short)cmd.getCMD_PARAMETER())
+						if( allcrosslist.get(i).getNext_station_id()==(short)cmd.getCMD_PARAMETER()[0])
 						{
 							//System.out.println("remove ...."+allcrosslist.get(i).getNext_station_id()+"   "+i);
 							allcrosslist.remove(i--); //释放内存,通过站台关联车辆信息
@@ -387,13 +389,26 @@ public class Tut5Receiver {
 			obj=  mapper.writeValueAsString(vobccmd);
 			template.convertAndSend("topic.ats2cu", ats2vobccmdKey, obj);*/
 		}
+		if(cmd.getCMD_TYPE() == 156) //对车设置跳停
+		{
+			Timer timer = new Timer();  //timer是个单线程，可以在不同时间段调度多个任务
+			MyTimerTask crossTimerTask = new MyTimerTask(template,cmd);
+			timer.scheduleAtFixedRate(crossTimerTask,1000,1000);
+			trainCrossTask.put(cmd.getCMD_PARAMETER()[1], timer);
+		}
+		if(cmd.getCMD_TYPE() == 157)//对车设置取消跳停跳停
+		{
+			Timer timer = trainCrossTask.get(cmd.getCMD_PARAMETER()[1]);
+			timer.cancel();
+			trainCrossTask.remove(cmd.getCMD_PARAMETER()[1]);
+		}
 		System.out.println(" Sent to [vobc] '" + obj + "'");
 		vobccmd = null;
 		header_info = null;
 		msg_header = null;
 		ats2vobc_ato_command = null;
 	}
-	private int[] string2intArray(String railid)
+/*	private int[] string2intArray(String railid)
 	{
 		String[] strarr = railid.split(",");
 		int[] ids = new int[strarr.length];
@@ -402,39 +417,35 @@ public class Tut5Receiver {
 			ids[i]=Integer.parseInt(strarr[i]);
 		}
 		return ids;
-	}
+	}*/
 	
 	@RabbitListener(queues = "#{autoDeleteQueue2.name}")
 	public  void receive2(String in) throws InterruptedException, IOException {
 		//System.out.println("task2 in......."+in);
 		TraintraceInfo traintraceinfo = mapper.readValue(in, TraintraceInfo.class);
-
-			if(detainmapTask.size()>0) //表示有多个扣车指令线程已经启动
+		if(detainmapTask.size()>0) //表示有多个扣车指令线程已经启动
+		{
+			System.out.println("detainmapTask size"+detainmapTask.size());
+			for(Map.Entry<String,Timer> m : detainmapTask.entrySet())
 			{
-				System.out.println("detainmapTask size"+detainmapTask.size());
-				for(Map.Entry<String,Timer> m : detainmapTask.entrySet())
+				if(traintraceinfo.getNext_station_id() == Integer.parseInt(m.getKey()))
 				{
-					if(traintraceinfo.getNext_station_id() == Integer.parseInt(m.getKey()))
-					{
-						//记录上一个车站通过的车辆信息情况
-						//detainMap.put(traintraceinfo.getTrain_order_num(), traintraceinfo);//存储所有需要被扣车的车辆信息
-						//alldetainlist.add(traintraceinfo);
-						alldetainlist.add(traintraceinfo);
-					}
+					//记录上一个车站通过的车辆信息情况
+					alldetainlist.add(traintraceinfo); //存储所有需要被扣车的车辆信息
 				}
 			}
-			if(crossmapTask.size()>0)
+		}
+		if(crossmapTask.size()>0)
+		{
+			System.out.println("crossmapTask size"+crossmapTask.size());
+			for(Map.Entry<String,Timer> m : crossmapTask.entrySet())
 			{
-				System.out.println("crossmapTask size"+crossmapTask.size());
-				for(Map.Entry<String,Timer> m : crossmapTask.entrySet())
+				if(traintraceinfo.getNext_station_id() == Integer.parseInt(m.getKey()))
 				{
-					if(traintraceinfo.getNext_station_id() == Integer.parseInt(m.getKey()))
-					{
-						
-						allcrosslist.add(traintraceinfo);//存储各个站台跳停所有需要跳停的车辆信息
-					}
+					allcrosslist.add(traintraceinfo);//存储各个站台跳停所有需要跳停的车辆信息
 				}
 			}
+		}
 	}
 
 }

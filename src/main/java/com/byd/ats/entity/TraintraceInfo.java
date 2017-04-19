@@ -14,6 +14,8 @@ public class TraintraceInfo {
 	private short park_stab_status;
 	private short this_station_id;
 	private short next_station_id;
+	private int t_head_track_id;
+	private short running_level;
 	private long sec;
 	private long usec;
 	public short getService_num() {
@@ -99,6 +101,18 @@ public class TraintraceInfo {
 	}
 	public void setNext_station_id(short next_station_id) {
 		this.next_station_id = next_station_id;
+	}
+	public int getT_head_track_id() {
+		return t_head_track_id;
+	}
+	public void setT_head_track_id(int t_head_track_id) {
+		this.t_head_track_id = t_head_track_id;
+	}
+	public short getRunning_level() {
+		return running_level;
+	}
+	public void setRunning_level(short running_level) {
+		this.running_level = running_level;
 	}
 	
 	

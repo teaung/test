@@ -1,6 +1,6 @@
 package com.byd.ats.entity;
 public class HeaderInfo {
-	private short inface_type;
+	private int inface_type;
 	private int send_vender;
 	private int receive_vender;
 	private byte map_version;
@@ -11,10 +11,10 @@ public class HeaderInfo {
 	private int msg_cnum_previous_msg;
 	private byte protocol_version;
 	
-	public short getInface_type() {
+	public int getInface_type() {
 		return inface_type;
 	}
-	public void setInface_type(short inface_type) {
+	public void setInface_type(int inface_type) {
 		this.inface_type = inface_type;
 	}
 

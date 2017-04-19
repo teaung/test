@@ -43,10 +43,10 @@ public class Tut5Config {
 		return new TopicExchange("topic.ats2cu");
 	}
 
-/*	@Bean
+	@Bean
 	public TopicExchange topicCU2ATS() {
 		return new TopicExchange("topic.cu2ats");
-	}*/
+	}
 
 	@Bean
 	public TopicExchange topicServ2Cli() {
@@ -74,6 +74,19 @@ public class Tut5Config {
 		}
 
 		@Bean
+		public CistatusReceiver receiver2() {
+	 	 	return new CistatusReceiver(receiver());
+		}
+/*		@Bean
+		public ZcstatusReceiver receiver3() {
+	 	 	return new ZcstatusReceiver();
+		}
+		@Bean
+		public TrainstatusReceiver receiver4() {
+	 	 	return new TrainstatusReceiver();
+		}*/
+		
+		@Bean
 		public Queue autoDeleteQueue1() {
 			return new AnonymousQueue();
 		}
@@ -82,16 +95,41 @@ public class Tut5Config {
 		public Queue autoDeleteQueue2() {
 			return new AnonymousQueue();
 		}
+		
+		@Bean
+		public Queue autoDeleteQueue3() {
+			return new AnonymousQueue();
+		}
+		
+		@Bean
+		public Queue autoDeleteQueue4() {
+			return new AnonymousQueue();
+		}
+		
+		@Bean
+		public Queue autoDeleteQueue5() {
+			return new AnonymousQueue();
+		}
 
 		@Bean
 		public Binding binding1a(@Qualifier("topicTest") TopicExchange topic, Queue autoDeleteQueue1) {
 			return BindingBuilder.bind(autoDeleteQueue1).to(topic).with("cli2serv.traincontrol.command");
 		}
 
-/*		@Bean
-		public Binding binding1b(@Qualifier("topicCU2ATS") TopicExchange topic, Queue autoDeleteQueue1) {
-			return BindingBuilder.bind(autoDeleteQueue1).to(topic).with("cu2ats.vobc.ato.status");
-		}*/
+		@Bean
+		public Binding binding1b(@Qualifier("topicCU2ATS") TopicExchange topic, Queue autoDeleteQueue3) {
+			return BindingBuilder.bind(autoDeleteQueue3).to(topic).with("cu2ats.vobc.train.status");
+		}
+		
+		@Bean
+		public Binding binding1c(@Qualifier("topicCU2ATS") TopicExchange topic, Queue autoDeleteQueue4) {
+			return BindingBuilder.bind(autoDeleteQueue4).to(topic).with("cu2ats.ci.status");
+		}
+		
+		@Bean
+		public Binding binding1d(@Qualifier("topicCU2ATS") TopicExchange topic,Queue autoDeleteQueue5) {
+			return BindingBuilder.bind(autoDeleteQueue5).to(topic).with("cu2ats.zc.status");
+		}
 
 				@Bean
 		public Binding binding2a(@Qualifier("topicServ2Cont") TopicExchange topic, Queue autoDeleteQueue2) {
@@ -106,9 +144,5 @@ public class Tut5Config {
 	public Tut5Sender sender() {
 		return new Tut5Sender();
 	}*/
-/*	@Bean
-	public DetainTask task()
-	{
-		return new DetainTask();
-	}*/
+
 }

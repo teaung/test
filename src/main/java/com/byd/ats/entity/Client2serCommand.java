@@ -6,11 +6,11 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 public class Client2serCommand {
 
 	@JsonProperty
+	private String CMD_CLASS;
+	@JsonProperty
 	private int CMD_TYPE;
 	@JsonProperty
-	private int CMD_PARAMETER;
-	@JsonProperty
-	private String CMD_CLASS;
+	private int[] CMD_PARAMETER;
 	
 	@JsonIgnore
 	public String getCMD_CLASS() {
@@ -29,12 +29,13 @@ public class Client2serCommand {
 		CMD_TYPE = cMD_TYPE;
 	}
 	@JsonIgnore
-	public int getCMD_PARAMETER() {
+	public int[] getCMD_PARAMETER() {
 		return CMD_PARAMETER;
 	}
 	@JsonIgnore
-	public void setCMD_PARAMETER(int cMD_PARAMETER) {
+	public void setCMD_PARAMETER(int[] cMD_PARAMETER) {
 		CMD_PARAMETER = cMD_PARAMETER;
 	}
+
 
 }

@@ -7,7 +7,7 @@ public class CimsgStatus {
 	private byte[] t_status = new byte[AtsPub.PHY_TRACK_NUM];
 	private byte[] lt_status = new byte[AtsPub.LOGIC_TRACK_NUM];
 	private byte[] r_status = new byte[AtsPub.ROUTE_NUM];
-	private byte[] autopass = new byte[AtsPub.AUTOPASS_NUM];
+	private byte[] autopass_status = new byte[AtsPub.AUTOPASS_NUM];
 	private byte[] d_status = new byte[AtsPub.DOOR_NUM];
 	private byte[] esp_status = new byte[AtsPub.ESP_NUM];
 	private byte[] keep_train = new byte[AtsPub.KEEP_TRAIN_NUM];
@@ -45,11 +45,12 @@ public class CimsgStatus {
 	public void setR_status(byte[] r_status) {
 		this.r_status = r_status;
 	}
-	public byte[] getAutopass() {
-		return autopass;
+
+	public byte[] getAutopass_status() {
+		return autopass_status;
 	}
-	public void setAutopass(byte[] autopass) {
-		this.autopass = autopass;
+	public void setAutopass_status(byte[] autopass_status) {
+		this.autopass_status = autopass_status;
 	}
 	public byte[] getD_status() {
 		return d_status;

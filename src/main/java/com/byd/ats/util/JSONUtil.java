@@ -6,6 +6,7 @@ import java.util.Map;
 import org.springframework.amqp.core.TopicExchange;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 
+import com.byd.ats.entity.Client2serCommand;
 import com.byd.ats.entity.Client2serZcCommand;
 /*import com.byd.entity.Ats2ciMsgComm;
 import com.byd.entity.Ats2zcElectrifyTsr;
@@ -94,12 +95,14 @@ public class JSONUtil {
     		System.out.println("json obj:"+obj);
     		template.convertAndSend(new TopicExchange("topic.ats2cu").getName(), "ats2cu.ci.command", "12321");*/
     		//System.out.println(" [x] Sent '" + obj + "'");
-        	 String temp="{\"CMD_CLASS\":\"zc\",\"CMD_TYPE\":256,\"TSR_VALUE\":6,\"TSR_NUM\":67,\"TSR_TRACKLIST\":[40965,40968,40969,40970,40971,40972,40973,40975,40983,40991,40992,40993"
-        	 		+ ",40994,40995,40996,40998,41003,41004,41005,41006,41007,41008,41011,41013,41014,41015,41016,41017,41018,41029,41032,41033,41035,41036,41037,41038,41039,41040,41041,41042,41043,41044,41046,41048,41049,41050,41051,41053,41047,41045,41034,41030,41031,41019,41020,41021,41022,41023,41024,41025,41026,41027,41028,41012,41009,41010,40999]}";
-        	 
+        	// String temp="{\"CMD_CLASS\":\"zc\",\"CMD_TYPE\":256,\"TSR_VALUE\":6,\"TSR_NUM\":67,\"TSR_TRACKLIST\":[40965,40968,40969,40970,40971,40972,40973,40975,40983,40991,40992,40993"
+        	 //		+ ",40994,40995,40996,40998,41003,41004,41005,41006,41007,41008,41011,41013,41014,41015,41016,41017,41018,41029,41032,41033,41035,41036,41037,41038,41039,41040,41041,41042,41043,41044,41046,41048,41049,41050,41051,41053,41047,41045,41034,41030,41031,41019,41020,41021,41022,41023,41024,41025,41026,41027,41028,41012,41009,41010,40999]}";
+        	 String temp =  "{\"CMD_CLASS\":\"vobc\",\"CMD_TYPE\":156,\"CMD_PARAMETER\":[01,003,505,06,85]}";
         	 ObjectMapper mapper = new ObjectMapper();
-        	 Client2serZcCommand cmd = mapper.readValue(temp, Client2serZcCommand.class);
-        	 String str = "";
+        	 mapper.configure(JsonParser.Feature.ALLOW_NUMERIC_LEADING_ZEROS, true);
+        	 Client2serCommand cmd = mapper.readValue(temp, Client2serCommand.class);
+        	 System.out.println("cmd..."+cmd.getCMD_TYPE());
+        	// String str = "";
 /*        	 for(int i :cmd.getTSR_TRACKLIST())
         	 {
         		 str = str+i+",";
