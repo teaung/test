@@ -59,6 +59,7 @@ public class Tut5Config {
 		//return new TopicExchange("topic.cu2ats");
 	}
 	
+	
 	/*
 	@Bean
 	public TopicExchange topicCli2Serv() {
@@ -76,6 +77,12 @@ public class Tut5Config {
 		@Bean
 		public CistatusReceiver receiver2() {
 	 	 	return new CistatusReceiver(receiver());
+		}
+		
+		@Bean
+		public ZcTsrAckReceiver receiver3()
+		{
+			return new ZcTsrAckReceiver();
 		}
 /*		@Bean
 		public ZcstatusReceiver receiver3() {
@@ -112,29 +119,44 @@ public class Tut5Config {
 		}
 
 		@Bean
+		public Queue autoDeleteQueue6() {
+			return new AnonymousQueue();
+		}
+		
+		@Bean
+		public Queue autoDeleteQueue7() {
+			return new AnonymousQueue();
+		}
+		@Bean
 		public Binding binding1a(@Qualifier("topicTest") TopicExchange topic, Queue autoDeleteQueue1) {
 			return BindingBuilder.bind(autoDeleteQueue1).to(topic).with("cli2serv.traincontrol.command");
 		}
 
-		@Bean
+/*		@Bean
 		public Binding binding1b(@Qualifier("topicCU2ATS") TopicExchange topic, Queue autoDeleteQueue3) {
 			return BindingBuilder.bind(autoDeleteQueue3).to(topic).with("cu2ats.vobc.train.status");
-		}
+		}*/
 		
-		@Bean
+/*		@Bean
 		public Binding binding1c(@Qualifier("topicCU2ATS") TopicExchange topic, Queue autoDeleteQueue4) {
 			return BindingBuilder.bind(autoDeleteQueue4).to(topic).with("cu2ats.ci.status");
-		}
+		}*/
 		
-		@Bean
+/*		@Bean
 		public Binding binding1d(@Qualifier("topicCU2ATS") TopicExchange topic,Queue autoDeleteQueue5) {
 			return BindingBuilder.bind(autoDeleteQueue5).to(topic).with("cu2ats.zc.status");
-		}
+		}*/
 
-				@Bean
-		public Binding binding2a(@Qualifier("topicServ2Cont") TopicExchange topic, Queue autoDeleteQueue2) {
+		@Bean
+		public Binding binding2a(@Qualifier("topicServ2Cont") TopicExchange topic, Queue autoDeleteQueue6) {
 			//return BindingBuilder.bind(autoDeleteQueue2).to(topic).with("cu2ats.vobc.ato.status");
-				return BindingBuilder.bind(autoDeleteQueue2).to(topic).with("ats.traintrace.station.arrive");
+				return BindingBuilder.bind(autoDeleteQueue6).to(topic).with("ats.traintrace.station.arrive");
+		}
+				
+		@Bean
+		public Binding binding2b(@Qualifier("topicCU2ATS") TopicExchange topic, Queue autoDeleteQueue7) {
+			//return BindingBuilder.bind(autoDeleteQueue2).to(topic).with("cu2ats.vobc.ato.status");
+				return BindingBuilder.bind(autoDeleteQueue7).to(topic).with("cu2ats.zc.tsr*.ack");
 		}
 
 	}

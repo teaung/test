@@ -97,7 +97,7 @@ public class Tut5Receiver implements ReceiverInterface{
 	private Map<Integer,Timer> trainCrossTask = new HashMap<Integer,Timer>();
 	public List<TraintraceInfo> alldetainlist = new CopyOnWriteArrayList<TraintraceInfo>();
 	private List<TraintraceInfo> allcrosslist = new CopyOnWriteArrayList<TraintraceInfo>();
-	public static List<Client2serCommand> ciStack = new ArrayList<Client2serCommand>();
+	public static List<Client2serCommand> ciStack = new CopyOnWriteArrayList<Client2serCommand>();
 	@RabbitListener(queues = "#{autoDeleteQueue1.name}")
 	public void receive(String in){
 		System.out.println("receive1 ....." + in);
@@ -222,7 +222,9 @@ public class Tut5Receiver implements ReceiverInterface{
 		cimsg.setAts_msg_command(msgcmd);
 		String obj =  mapper.writeValueAsString(cimsg);
 		//System.out.println("json obj:"+obj);
-
+/*		if(cmd.getCMD_TYPE() == 1 ||cmd.getCMD_TYPE() == 3 || cmd.getCMD_TYPE() ==11 || cmd.getCMD_TYPE() == 18 || cmd.getCMD_TYPE() == 19
+				|| cmd.getCMD_TYPE() == 23 || cmd.getCMD_TYPE()==24 || cmd.getCMD_TYPE()==25 || cmd.getCMD_TYPE()==26 || cmd.getCMD_TYPE()==36 || cmd.getCMD_TYPE()==37)
+		{}*/
 		try {
 			//TopicExchange topic_ats2cu  =new TopicExchange("topic.ats2cu");
 			template.convertAndSend("topic.ats2cu", ats2cicmdKey, obj);

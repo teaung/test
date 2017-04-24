@@ -51,7 +51,7 @@ public class MyTimerTask  extends TimerTask{
 	@Override
 	public void run() {
 		// TODO Auto-generated method stub
-				if(cmd.getCMD_TYPE() == 31 || cmd.getCMD_TYPE() == 33)//扣车指令
+				if(cmd.getCMD_TYPE() == 31 || cmd.getCMD_TYPE() == 33)//站台扣车指令
 				{
 					System.out.println(Thread.currentThread().getName()+"  "+"alldetainlist.size="+listinfo.size());
 					if(listinfo.size()>0)
@@ -101,7 +101,7 @@ public class MyTimerTask  extends TimerTask{
 					
 					}
 				}
-				if(cmd.getCMD_TYPE() == 102)//跳停指令
+				if(cmd.getCMD_TYPE() == 102)//站台跳停指令
 				{
 					System.out.println(Thread.currentThread().getName()+"  "+"allcrosslist.size="+listinfo.size());
 					if(listinfo.size()>0)
@@ -117,7 +117,7 @@ public class MyTimerTask  extends TimerTask{
 							vobccmd.setMsg_header(msg_header);
 							ats2vobc_ato_command = new Ats2vobcAtoCommand();
 							ats2vobc_ato_command.setCross_station_command((short)0x55);
-							ats2vobc_ato_command.setNext_station_id(traintraceInfo.getNext_station_id());
+							ats2vobc_ato_command.setCross_station_id(traintraceInfo.getNext_station_id());
 							ats2vobc_ato_command.setTrain_order_num((short)505);
 							ats2vobc_ato_command.setService_num(traintraceInfo.getService_num());
 							ats2vobc_ato_command.setLine_num(traintraceInfo.getLine_num());
@@ -161,7 +161,7 @@ public class MyTimerTask  extends TimerTask{
 					ats2vobc_ato_command.setDestin_num(cmd.getCMD_PARAMETER()[3]);
 					ats2vobc_ato_command.setDirection_plan((short)cmd.getCMD_PARAMETER()[4]);
 					ats2vobc_ato_command.setTrain_order_num((short)cmd.getCMD_PARAMETER()[2]);
-					ats2vobc_ato_command.setDetain_command((short)0x55);
+					ats2vobc_ato_command.setCross_station_command((short)0x55);
 					vobccmd.setAts2vobc_ato_command(ats2vobc_ato_command);
 					try {
 						obj =  mapper.writeValueAsString(vobccmd);
