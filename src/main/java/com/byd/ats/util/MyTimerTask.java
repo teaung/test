@@ -108,40 +108,44 @@ public class MyTimerTask  extends TimerTask{
 					{
 						for(TraintraceInfo traintraceInfo:listinfo)
 						{
-							String obj = "";
-							vobccmd = new Ats2vobcMsgComm();
-							header_info = new HeaderInfo();
-							msg_header = new MsgHeader();
-							msg_header.setMsg_type((short)0x203);
-							vobccmd.setHeader_info(header_info);
-							vobccmd.setMsg_header(msg_header);
-							ats2vobc_ato_command = new Ats2vobcAtoCommand();
-							ats2vobc_ato_command.setCross_station_command((short)0x55);
-							ats2vobc_ato_command.setCross_station_id(traintraceInfo.getNext_station_id());
-							ats2vobc_ato_command.setTrain_order_num((short)505);
-							ats2vobc_ato_command.setService_num(traintraceInfo.getService_num());
-							ats2vobc_ato_command.setLine_num(traintraceInfo.getLine_num());
-							ats2vobc_ato_command.setTrain_line_num(traintraceInfo.getTrain_line_num());
-							ats2vobc_ato_command.setTrain_num(traintraceInfo.getTrain_num());
-							ats2vobc_ato_command.setOrigin_line_num(traintraceInfo.getOrigin_line_num());
-							ats2vobc_ato_command.setDestin_line_num(traintraceInfo.getDestin_line_num());
-							ats2vobc_ato_command.setDestin_num(traintraceInfo.getDestin_num());
-							ats2vobc_ato_command.setDirection_plan(traintraceInfo.getDirection_train());
-							vobccmd.setAts2vobc_ato_command(ats2vobc_ato_command);
-							 try {
-								obj =  mapper.writeValueAsString(vobccmd);
-								template.convertAndSend("topic.ats2cu", ats2vobccmdKey, obj);
-								System.out.println("send to [vobc cross cmd]"+obj);
-							} catch (JsonProcessingException e) {
-								// TODO Auto-generated catch block
-								e.printStackTrace();
-							}
-							 finally {
-								 vobccmd = null;
-								header_info = null;
-								msg_header = null;
-								vobccmd = null;
-								ats2vobc_ato_command = null;
+							//扣车指令给多个车辆发送扣车信息,获取当前站台对应的上一车子，车辆信息
+							if(traintraceInfo.getNext_station_id() == cmd.getCMD_PARAMETER()[0] ) //获取当前车站应该给哪些车发信息
+							{
+								String obj = "";
+								vobccmd = new Ats2vobcMsgComm();
+								header_info = new HeaderInfo();
+								msg_header = new MsgHeader();
+								msg_header.setMsg_type((short)0x203);
+								vobccmd.setHeader_info(header_info);
+								vobccmd.setMsg_header(msg_header);
+								ats2vobc_ato_command = new Ats2vobcAtoCommand();
+								ats2vobc_ato_command.setCross_station_command((short)0x55);
+								ats2vobc_ato_command.setCross_station_id(traintraceInfo.getNext_station_id());
+								ats2vobc_ato_command.setTrain_order_num((short)505);
+								ats2vobc_ato_command.setService_num(traintraceInfo.getService_num());
+								ats2vobc_ato_command.setLine_num(traintraceInfo.getLine_num());
+								ats2vobc_ato_command.setTrain_line_num(traintraceInfo.getTrain_line_num());
+								ats2vobc_ato_command.setTrain_num(traintraceInfo.getTrain_num());
+								ats2vobc_ato_command.setOrigin_line_num(traintraceInfo.getOrigin_line_num());
+								ats2vobc_ato_command.setDestin_line_num(traintraceInfo.getDestin_line_num());
+								ats2vobc_ato_command.setDestin_num(traintraceInfo.getDestin_num());
+								ats2vobc_ato_command.setDirection_plan(traintraceInfo.getDirection_train());
+								vobccmd.setAts2vobc_ato_command(ats2vobc_ato_command);
+								 try {
+									obj =  mapper.writeValueAsString(vobccmd);
+									template.convertAndSend("topic.ats2cu", ats2vobccmdKey, obj);
+									System.out.println("send to [vobc cross cmd]"+obj);
+								} catch (JsonProcessingException e) {
+									// TODO Auto-generated catch block
+									e.printStackTrace();
+								}
+								 finally {
+									 vobccmd = null;
+									header_info = null;
+									msg_header = null;
+									vobccmd = null;
+									ats2vobc_ato_command = null;
+								}
 							}
 						}
 					}	

@@ -148,9 +148,9 @@ public class Tut5Config {
 		}*/
 
 		@Bean
-		public Binding binding2a(@Qualifier("topicServ2Cont") TopicExchange topic, Queue autoDeleteQueue6) {
+		public Binding binding2a(@Qualifier("topicServ2Cont") TopicExchange topic, Queue autoDeleteQueue2) {
 			//return BindingBuilder.bind(autoDeleteQueue2).to(topic).with("cu2ats.vobc.ato.status");
-				return BindingBuilder.bind(autoDeleteQueue6).to(topic).with("ats.traintrace.station.arrive");
+				return BindingBuilder.bind(autoDeleteQueue2).to(topic).with("ats.traintrace.station.arrive");
 		}
 				
 		@Bean

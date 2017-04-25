@@ -421,9 +421,10 @@ public class Tut5Receiver implements ReceiverInterface{
 		return ids;
 	}*/
 	
+	//监听列车在上一站台离开状态
 	@RabbitListener(queues = "#{autoDeleteQueue2.name}")
 	public  void receive2(String in) throws InterruptedException, IOException {
-		//System.out.println("task2 in......."+in);
+		System.out.println("receive2 in......."+in);
 		TraintraceInfo traintraceinfo = mapper.readValue(in, TraintraceInfo.class);
 		if(detainmapTask.size()>0) //表示有多个扣车指令线程已经启动
 		{
