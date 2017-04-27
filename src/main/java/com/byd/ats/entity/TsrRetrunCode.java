@@ -8,7 +8,7 @@ public class TsrRetrunCode {
 	@JsonProperty
 	private int CMD_TYPE;
 	@JsonProperty
-	private String RESOULT;
+	private byte RESOULT;
 	@JsonProperty
 	private String CODE;
 	@JsonIgnore
@@ -20,11 +20,11 @@ public class TsrRetrunCode {
 		CMD_TYPE = cMD_TYPE;
 	}
 	@JsonIgnore
-	public String getRESOULT() {
+	public byte getRESOULT() {
 		return RESOULT;
 	}
 	@JsonIgnore
-	public void setRESOULT(String rESOULT) {
+	public void setRESOULT(byte rESOULT) {
 		RESOULT = rESOULT;
 	}
 	@JsonIgnore

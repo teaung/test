@@ -156,9 +156,9 @@ public class Tut5Receiver implements ReceiverInterface{
 		{
 			ats2zc_verifytsr = new Ats2zcMsgVerifyTsr();
 			//if(cmd.getCMD_TYPE())
-			header_info = new HeaderInfo();
-			msg_header = new MsgHeader();
-			msg_header.setMsg_type((short)0x0203);
+			 header_info = new HeaderInfo();
+			 msg_header = new MsgHeader();
+			 msg_header.setMsg_type((short)0x0203);
 			 verify_tsr = new Ats2zcVerifyTsr();
 			 verify_tsr.setTemp_lim_v((short)cmd.getTSR_VALUE());
 			 verify_tsr.setLogic_track_num((short)cmd.getTSR_NUM());
@@ -175,13 +175,6 @@ public class Tut5Receiver implements ReceiverInterface{
 			 msg_header = null;
 			 verify_tsr = null;
 			 System.out.println("Sent tsr verify  to [zc] '" + obj + "'");
-			TsrRetrunCode trcode = new TsrRetrunCode();
-			 trcode.setCMD_TYPE(101);
-			 trcode.setCODE("success_code");
-			 trcode.setRESOULT("0x55");
-			 String obj1= mapper.writeValueAsString(trcode);
-			 template.convertAndSend("topic.serv2cli", "serv2cli.traincontrol.command_back", obj1);
-			 System.out.println("return code" + obj1 + "'");
 		}
 		if(cmd.getCMD_TYPE() == 101)
 		{
