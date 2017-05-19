@@ -4,7 +4,10 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 public class Client2serZcCommand {
-
+	@JsonProperty
+	private int ClIENT_NUM;
+	@JsonProperty
+	private String USER_NAME;
 	@JsonProperty
 	private String CMD_CLASS;
 	@JsonProperty
@@ -56,7 +59,19 @@ public class Client2serZcCommand {
 	public void setTSR_TRACKLIST(int[] tSR_TRACKLIST) {
 		TSR_TRACKLIST = tSR_TRACKLIST;
 	}
+	public int getClIENT_NUM() {
+		return ClIENT_NUM;
+	}
+	public void setClIENT_NUM(int clIENT_NUM) {
+		ClIENT_NUM = clIENT_NUM;
+	}
+	public String getUSER_NAME() {
+		return USER_NAME;
+	}
+	public void setUSER_NAME(String uSER_NAME) {
+		USER_NAME = uSER_NAME;
+	}
 
-
+	
 	
 }

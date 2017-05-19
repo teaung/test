@@ -11,6 +11,10 @@ public class Client2serCommand {
 	private int CMD_TYPE;
 	@JsonProperty
 	private int[] CMD_PARAMETER;
+	@JsonProperty
+	private int ClIENT_NUM;
+	@JsonProperty
+	private String USER_NAME;
 	
 	@JsonIgnore
 	public String getCMD_CLASS() {
@@ -35,6 +39,18 @@ public class Client2serCommand {
 	@JsonIgnore
 	public void setCMD_PARAMETER(int[] cMD_PARAMETER) {
 		CMD_PARAMETER = cMD_PARAMETER;
+	}
+	public int getClIENT_NUM() {
+		return ClIENT_NUM;
+	}
+	public void setClIENT_NUM(int clIENT_NUM) {
+		ClIENT_NUM = clIENT_NUM;
+	}
+	public String getUSER_NAME() {
+		return USER_NAME;
+	}
+	public void setUSER_NAME(String uSER_NAME) {
+		USER_NAME = uSER_NAME;
 	}
 
 
