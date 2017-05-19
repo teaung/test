@@ -29,6 +29,8 @@ import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.amqp.core.TopicExchange;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
@@ -70,7 +72,7 @@ public class Tut5Receiver implements ReceiverInterface{
 	//@Autowired
 	//@Qualifier("topicATS2CU")
 	
-	
+	private final Logger logger = LoggerFactory.getLogger(this.getClass());
 	@Autowired
 	private RabbitTemplate template;
 /*	@Autowired
@@ -100,7 +102,7 @@ public class Tut5Receiver implements ReceiverInterface{
 	public static List<Client2serCommand> ciStack = new CopyOnWriteArrayList<Client2serCommand>();
 	@RabbitListener(queues = "#{autoDeleteQueue1.name}")
 	public void receive(String in){
-		System.out.println("receive1 ....." + in);
+		logger.info("receive1 ....." + in);
 		try {
 			mapper.configure(JsonParser.Feature.ALLOW_NUMERIC_LEADING_ZEROS, true);
 			Map<String,Object> tempmap = mapper.readValue(in, Map.class);
@@ -109,7 +111,6 @@ public class Tut5Receiver implements ReceiverInterface{
 			{	
 				if(tempmap.get("CMD_CLASS").toString().equals("vobc"))
 				{
-					//System.out.println(".......vobc..");
 					Client2serCommand cmd=mapper.readValue(in, Client2serCommand.class);
 					if(cmd !=null)
 					{
@@ -118,7 +119,6 @@ public class Tut5Receiver implements ReceiverInterface{
 				}
 				if(tempmap.get("CMD_CLASS").toString().equals("ci"))
 				{
-					//System.out.println(".......ci..");
 					Client2serCommand cmd=mapper.readValue(in, Client2serCommand.class);
 					if(cmd != null)
 					{
@@ -140,8 +140,7 @@ public class Tut5Receiver implements ReceiverInterface{
 			{
 				System.out.println("key = "+key+";value =" +tempmap.get(key));
 			}*/
-
-			System.out.println("receive1 .end....");
+			logger.info("receive1 .end....");
 						
 		} catch (Exception e) {
 			// TODO: handle exception
@@ -174,7 +173,7 @@ public class Tut5Receiver implements ReceiverInterface{
 			 header_info = null;
 			 msg_header = null;
 			 verify_tsr = null;
-			 System.out.println("Sent tsr verify  to [zc] '" + obj + "'");
+			 logger.info("Sent tsr verify  to [zc] " + obj + " ");
 		}
 		if(cmd.getCMD_TYPE() == 101)
 		{
@@ -196,7 +195,7 @@ public class Tut5Receiver implements ReceiverInterface{
 			 header_info = null;
 			 msg_header = null;
 			 execute_tsr = null;
-			 System.out.println("Sent tsr execute  to [zc] '" + obj + "'");
+			 logger.info("Sent tsr execute  to [zc] " + obj + " ");
 		}
 
 	}
@@ -230,7 +229,7 @@ public class Tut5Receiver implements ReceiverInterface{
 			e.printStackTrace();
 			// TODO: handle exception
 		}
-		System.out.println("Sent to [ci] '" + obj + "'");
+		logger.info("Sent to [ci] " + obj + " ");
 	}
 
 	public  void send2vobc(Client2serCommand  cmd) throws IOException
@@ -393,7 +392,7 @@ public class Tut5Receiver implements ReceiverInterface{
 			timer.cancel();
 			trainCrossTask.remove(cmd.getCMD_PARAMETER()[1]);
 		}
-		System.out.println(" Sent to [vobc] '" + obj + "'");
+		logger.info(" Sent to [vobc] " + obj + " ");
 		vobccmd = null;
 		header_info = null;
 		msg_header = null;
@@ -413,11 +412,11 @@ public class Tut5Receiver implements ReceiverInterface{
 	//监听列车在上一站台离开状态
 	@RabbitListener(queues = "#{autoDeleteQueue2.name}")
 	public  void receive2(String in) throws InterruptedException, IOException {
-		System.out.println("receive2 in......."+in);
+		logger.info("receive2 in......."+in);
 		TraintraceInfo traintraceinfo = mapper.readValue(in, TraintraceInfo.class);
 		if(detainmapTask.size()>0) //表示有多个扣车指令线程已经启动
 		{
-			System.out.println("detainmapTask size"+detainmapTask.size());
+			logger.info("detainmapTask size"+detainmapTask.size());
 			for(Map.Entry<String,Timer> m : detainmapTask.entrySet())
 			{
 				if(traintraceinfo.getNext_station_id() == Integer.parseInt(m.getKey()))
@@ -429,7 +428,7 @@ public class Tut5Receiver implements ReceiverInterface{
 		}
 		if(crossmapTask.size()>0)
 		{
-			System.out.println("crossmapTask size"+crossmapTask.size());
+			logger.info("crossmapTask size"+crossmapTask.size());
 			for(Map.Entry<String,Timer> m : crossmapTask.entrySet())
 			{
 				if(traintraceinfo.getNext_station_id() == Integer.parseInt(m.getKey()))
