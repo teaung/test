@@ -32,6 +32,7 @@ import java.util.concurrent.locks.ReentrantLock;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.amqp.core.TopicExchange;
+import org.springframework.amqp.rabbit.annotation.RabbitHandler;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -49,10 +50,12 @@ import com.byd.ats.entity.Ats2zcMsgVerifyTsr;
 import com.byd.ats.entity.Ats2zcVerifyTsr;
 import com.byd.ats.entity.AtsMsgCommand;
 import com.byd.ats.entity.Client2serCommand;
+import com.byd.ats.entity.StationControl;
 import com.byd.ats.entity.Client2serVobcCommand;
 import com.byd.ats.entity.Client2serZcCommand;
 import com.byd.ats.entity.HeaderInfo;
 import com.byd.ats.entity.MsgHeader;
+import com.byd.ats.entity.Ser2ClientModeCommand;
 import com.byd.ats.entity.TraintraceInfo;
 import com.byd.ats.entity.TsrRetrunCode;
 import com.byd.ats.util.MyTimerTask;
@@ -62,11 +65,11 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-
 /**
  * @author Gary Russell
  * @author Scott Deeg
  */
+@RabbitListener(queues = "#{autoDeleteQueue1.name}")
 public class Tut5Receiver implements ReceiverInterface{
 	
 	//@Autowired
@@ -100,7 +103,7 @@ public class Tut5Receiver implements ReceiverInterface{
 	public List<TraintraceInfo> alldetainlist = new CopyOnWriteArrayList<TraintraceInfo>();
 	private List<TraintraceInfo> allcrosslist = new CopyOnWriteArrayList<TraintraceInfo>();
 	public static List<Client2serCommand> ciStack = new CopyOnWriteArrayList<Client2serCommand>();
-	@RabbitListener(queues = "#{autoDeleteQueue1.name}")
+	@RabbitHandler
 	public void receive(String in){
 		logger.info("receive1 ....." + in);
 		try {
@@ -133,7 +136,14 @@ public class Tut5Receiver implements ReceiverInterface{
 						send2ZC(cmd);
 					}
 				}
-
+				if(tempmap.get("CMD_CLASS").toString().equals("atsmode"))
+				{
+					StationControl cmd =mapper.readValue(in, StationControl.class);
+					if(cmd != null)
+					{
+						sendMode2Client(cmd);
+					}
+				}
 			}
 
 /*			for(String key : tempmap.keySet())
@@ -148,7 +158,15 @@ public class Tut5Receiver implements ReceiverInterface{
 
 		
 	}
-
+	public void sendMode2Client(StationControl cmd) throws JsonProcessingException
+	{
+		//logger.info("sendMode2Client...."+cmd.getCURRENT_MODE());
+		Ser2ClientModeCommand modecmd = new Ser2ClientModeCommand();
+		modecmd.setStationControl(cmd);
+		String obj = mapper.writeValueAsString(modecmd);
+		template.convertAndSend("topic.serv2cli", "serv2cli.traincontrol.model", obj);
+		logger.info("Sent StationControl to [ats-client] " + obj + " ");
+	}
 	public void send2ZC(Client2serZcCommand cmd) throws JsonProcessingException
 	{
 		if(cmd.getCMD_TYPE() == 100)

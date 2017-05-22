@@ -66,7 +66,7 @@ public class Tut5Config {
 		return new TopicExchange("topic.cli2serv");
 	}*/
 
-	//@Profile("receiver")
+	//@Profile("dev")
 	private static class ReceiverConfig {
 
 		@Bean
