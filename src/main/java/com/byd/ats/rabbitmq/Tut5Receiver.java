@@ -49,12 +49,16 @@ import com.byd.ats.entity.Ats2zcMsgExecuteTsr;
 import com.byd.ats.entity.Ats2zcMsgVerifyTsr;
 import com.byd.ats.entity.Ats2zcVerifyTsr;
 import com.byd.ats.entity.AtsMsgCommand;
+import com.byd.ats.entity.Client2cuPasswordConfirm;
 import com.byd.ats.entity.Client2serCommand;
+import com.byd.ats.entity.Client2serPwdCommand;
 import com.byd.ats.entity.StationControl;
 import com.byd.ats.entity.Client2serVobcCommand;
 import com.byd.ats.entity.Client2serZcCommand;
 import com.byd.ats.entity.HeaderInfo;
 import com.byd.ats.entity.MsgHeader;
+import com.byd.ats.entity.RecvPassword;
+import com.byd.ats.entity.SendPassword;
 import com.byd.ats.entity.Ser2ClientModeCommand;
 import com.byd.ats.entity.TraintraceInfo;
 import com.byd.ats.entity.TsrRetrunCode;
@@ -69,7 +73,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
  * @author Gary Russell
  * @author Scott Deeg
  */
-@RabbitListener(queues = "#{autoDeleteQueue1.name}")
+//@RabbitListener(queues = "#{autoDeleteQueue1.name}")
 public class Tut5Receiver implements ReceiverInterface{
 	
 	//@Autowired
@@ -103,7 +107,8 @@ public class Tut5Receiver implements ReceiverInterface{
 	public List<TraintraceInfo> alldetainlist = new CopyOnWriteArrayList<TraintraceInfo>();
 	private List<TraintraceInfo> allcrosslist = new CopyOnWriteArrayList<TraintraceInfo>();
 	public static List<Client2serCommand> ciStack = new CopyOnWriteArrayList<Client2serCommand>();
-	@RabbitHandler
+	//@RabbitHandler
+	@RabbitListener(queues = "#{autoDeleteQueue1.name}")
 	public void receive(String in){
 		logger.info("receive1 ....." + in);
 		try {
@@ -136,6 +141,14 @@ public class Tut5Receiver implements ReceiverInterface{
 						send2ZC(cmd);
 					}
 				}
+				if(tempmap.get("CMD_CLASS").toString().equals("password"))
+				{
+					Client2serPwdCommand cmd =mapper.readValue(in, Client2serPwdCommand.class);
+					if(cmd != null)
+					{
+						sendPwdConfirm2CU(cmd);
+					}
+				}
 				if(tempmap.get("CMD_CLASS").toString().equals("atsmode"))
 				{
 					StationControl cmd =mapper.readValue(in, StationControl.class);
@@ -157,6 +170,21 @@ public class Tut5Receiver implements ReceiverInterface{
 		}
 
 		
+	}
+	public void sendPwdConfirm2CU(Client2serPwdCommand cmd) throws JsonProcessingException
+	{
+		//logger.info("sendPwdConfirm2CU...."+cmd.getPASSWORD());
+		Client2cuPasswordConfirm pwdconfirm = new Client2cuPasswordConfirm();
+		SendPassword recvpassword = new SendPassword();
+		recvpassword.setClient_num(cmd.getClIENT_NUM());
+		recvpassword.setTraincontrol_cmd_type(cmd.getCMD_TYPE());
+		recvpassword.setUser_name(cmd.getUSER_NAME());
+		recvpassword.setFor_cmd(cmd.getFOR_CMD());
+		recvpassword.setPassword(cmd.getPASSWORD());
+		pwdconfirm.setRecv_password_t(recvpassword);
+		String obj = mapper.writeValueAsString(pwdconfirm);
+		template.convertAndSend("topic.ats2cu", "ats2cu.cli.password_confirm", obj);
+		logger.info("Sent Client2cuPasswordConfirm to [ats-cu] " + obj + " ");
 	}
 	public void sendMode2Client(StationControl cmd) throws JsonProcessingException
 	{
@@ -455,6 +483,14 @@ public class Tut5Receiver implements ReceiverInterface{
 				}
 			}
 		}
+	}
+	
+	@RabbitListener(queues = "#{autoDeleteQueue7.name}")
+	public void receiveCuInfo(String in) throws JsonParseException, JsonMappingException, IOException
+	{
+		//RecvPassword recvpassword = mapper.readValue(in,RecvPassword.class);
+		logger.info("receiveCuInfo "+in);
+		template.convertAndSend("topic.serv2cli", "serv2cli.traincontrol.password_confirm", in);
 	}
 
 }
