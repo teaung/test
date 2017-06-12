@@ -34,7 +34,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 public class Tut5Config {
 
 	@Bean
-	public TopicExchange topicTest() {
+	public TopicExchange topicCli2Serv() {
 		return new TopicExchange("topic.cli2serv");
 	}
 
@@ -59,13 +59,6 @@ public class Tut5Config {
 		//return new TopicExchange("topic.cu2ats");
 	}
 	
-	
-	/*
-	@Bean
-	public TopicExchange topicCli2Serv() {
-		return new TopicExchange("topic.cli2serv");
-	}*/
-
 	//@Profile("dev")
 	private static class ReceiverConfig {
 
@@ -74,25 +67,12 @@ public class Tut5Config {
 	 	 	return new Tut5Receiver();
 		}
 
-		@Bean
+/*		@Bean
 		public CistatusReceiver receiver2() {
 	 	 	return new CistatusReceiver(receiver());
-		}
-		
-		@Bean
-		public ZcTsrAckReceiver receiver3()
-		{
-			return new ZcTsrAckReceiver();
-		}
-/*		@Bean
-		public ZcstatusReceiver receiver4() {
-	 	 	return new ZcstatusReceiver();
 		}*/
-	/*			@Bean
-		public TrainstatusReceiver receiver4() {
-	 	 	return new TrainstatusReceiver();
-		}*/
-		
+
+
 		@Bean
 		public Queue autoDeleteQueue1() {
 			return new AnonymousQueue();
@@ -109,66 +89,20 @@ public class Tut5Config {
 		}
 		
 		@Bean
-		public Queue autoDeleteQueue4() {
-			return new AnonymousQueue();
-		}
-		
-		@Bean
-		public Queue autoDeleteQueue5() {
-			return new AnonymousQueue();
-		}
-
-		@Bean
-		public Queue autoDeleteQueue6() {
-			return new AnonymousQueue();
-		}
-		
-		@Bean
-		public Queue autoDeleteQueue7() {
-			return new AnonymousQueue();
-		}
-		@Bean
-		public Binding binding1a(@Qualifier("topicTest") TopicExchange topic, Queue autoDeleteQueue1) {
+		public Binding binding1a(@Qualifier("topicCli2Serv") TopicExchange topic, Queue autoDeleteQueue1) {
 			return BindingBuilder.bind(autoDeleteQueue1).to(topic).with("cli2serv.traincontrol.command");
 		}
-
-		@Bean
-		public Binding binding1b(@Qualifier("topicCU2ATS") TopicExchange topic, Queue autoDeleteQueue3) {
-			return BindingBuilder.bind(autoDeleteQueue3).to(topic).with("cu2ats.vobc.train.status");
-		}
 		
 		@Bean
-		public Binding binding1c(@Qualifier("topicCU2ATS") TopicExchange topic, Queue autoDeleteQueue4) {
-			return BindingBuilder.bind(autoDeleteQueue4).to(topic).with("cu2ats.ci.status");
+		public Binding binding1c(@Qualifier("topicCU2ATS") TopicExchange topic, Queue autoDeleteQueue2) {
+			return BindingBuilder.bind(autoDeleteQueue2).to(topic).with("cu2ats.ci.status");
 		}
 		
-		@Bean
-		public Binding binding1d(@Qualifier("topicCU2ATS") TopicExchange topic,Queue autoDeleteQueue5) {
-			return BindingBuilder.bind(autoDeleteQueue5).to(topic).with("cu2ats.zc.tsr*.#");
-		}
 		
 		@Bean
-		public Binding binding1e(@Qualifier("topicCU2ATS") TopicExchange topic,Queue autoDeleteQueue6) {
-			return BindingBuilder.bind(autoDeleteQueue6).to(topic).with("cu2ats.zc.tsr*.#");
-		}
-		
-		@Bean
-		public Binding binding1f(@Qualifier("topicCU2ATS") TopicExchange topic,Queue autoDeleteQueue7) {
-			return BindingBuilder.bind(autoDeleteQueue7).to(topic).with("cu2ats.cli.password_confirm_back");
-		}
-		
-		@Bean
-		public Binding binding2a(@Qualifier("topicServ2Cont") TopicExchange topic, Queue autoDeleteQueue2) {
-			//return BindingBuilder.bind(autoDeleteQueue2).to(topic).with("cu2ats.vobc.ato.status");
-				return BindingBuilder.bind(autoDeleteQueue2).to(topic).with("ats.traintrace.station.arrive");
-		}
-				
-/*		@Bean
-		public Binding binding2b(@Qualifier("topicCU2ATS") TopicExchange topic, Queue autoDeleteQueue7) {
-			//return BindingBuilder.bind(autoDeleteQueue2).to(topic).with("cu2ats.vobc.ato.status");
-				//
-			return BindingBuilder.bind(autoDeleteQueue7).to(topic).with("cu2ats.zc.status");
-		}*/
+		public Binding binding1f(@Qualifier("topicCU2ATS") TopicExchange topic,Queue autoDeleteQueue3) {
+			return BindingBuilder.bind(autoDeleteQueue3).to(topic).with("cu2ats.cli.password_confirm_back");
+		}				
 
 	}
 

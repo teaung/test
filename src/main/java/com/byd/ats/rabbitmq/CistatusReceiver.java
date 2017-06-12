@@ -1,4 +1,4 @@
-package com.byd.ats.rabbitmq;
+/*package com.byd.ats.rabbitmq;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -25,11 +25,11 @@ public class CistatusReceiver implements ReceiverInterface{
 	}
 	@RabbitListener(queues = "#{autoDeleteQueue4.name}")
 	public void receive(String in){
-/*		if(receiver != null)
+		if(receiver != null)
 		{
 			System.out.println("receiver.ciStack.size().."+receiver.ciStack.size());
 		}
-		System.out.println("out in:"+in);*/
+		System.out.println("out in:"+in);
 	
 		try {
 			AmqpCiStatus cistatus = mapper.readValue(in, AmqpCiStatus.class);
@@ -80,3 +80,4 @@ public class CistatusReceiver implements ReceiverInterface{
 		//System.out.println("CistatusReceiver..alldetainlist size:"+alldetainlist.size());
 	}
 }
+*/
