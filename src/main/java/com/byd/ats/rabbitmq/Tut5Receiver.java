@@ -39,6 +39,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.util.StopWatch;
 
+import com.byd.ats.entity.AmqpCiFeed;
 import com.byd.ats.entity.Ats2ciMsgComm;
 import com.byd.ats.entity.Ats2vobcAtoCommand;
 import com.byd.ats.entity.Ats2vobcMsgComm;
@@ -49,19 +50,23 @@ import com.byd.ats.entity.Ats2zcMsgExecuteTsr;
 import com.byd.ats.entity.Ats2zcMsgVerifyTsr;
 import com.byd.ats.entity.Ats2zcVerifyTsr;
 import com.byd.ats.entity.AtsMsgCommand;
+import com.byd.ats.entity.CLient2serJsonCommand;
 import com.byd.ats.entity.Client2cuPasswordConfirm;
 import com.byd.ats.entity.Client2serCommand;
 import com.byd.ats.entity.Client2serPwdCommand;
 import com.byd.ats.entity.StationControl;
 import com.byd.ats.entity.Client2serVobcCommand;
 import com.byd.ats.entity.Client2serZcCommand;
+import com.byd.ats.entity.Cu2AtsCiFeed;
 import com.byd.ats.entity.HeaderInfo;
 import com.byd.ats.entity.MsgHeader;
 import com.byd.ats.entity.RecvPassword;
+import com.byd.ats.entity.Ret2ClientResult;
 import com.byd.ats.entity.SendPassword;
 import com.byd.ats.entity.Ser2ClientModeCommand;
 import com.byd.ats.entity.TraintraceInfo;
 import com.byd.ats.entity.TsrRetrunCode;
+import com.byd.ats.service.Client2serJsonCommandRepository;
 import com.byd.ats.util.MyTimerTask;
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.core.JsonParser;
@@ -79,6 +84,9 @@ public class Tut5Receiver implements ReceiverInterface{
 	private final Logger logger = LoggerFactory.getLogger(this.getClass());
 	@Autowired
 	private RabbitTemplate template;
+	@Autowired
+	private Client2serJsonCommandRepository cmdRepository;
+	
 	private String ats2cicmdKey= "ats2cu.ci.command";
 	private String ats2cistaKey = "ats2cu.ci.ats_status";
 	private ObjectMapper mapper = new ObjectMapper();
@@ -86,21 +94,36 @@ public class Tut5Receiver implements ReceiverInterface{
 	private HeaderInfo header_info=null;
 	private MsgHeader msg_header=null;
 	private AtsMsgCommand msgcmd =null;
-	//public static List<Client2serCommand> ciStack = new CopyOnWriteArrayList<Client2serCommand>();
+	private CLient2serJsonCommand ser2clijson = null;
+	private CLient2serJsonCommand cli2serjson = null;
+	private Client2serCommand cmd = null;
+	private Client2serPwdCommand pwdcmd = null;
+	private StationControl contrcmd = null;
+	private AmqpCiFeed ciFeed = null;
+	private Ret2ClientResult ret = null;
+	//需要定义用户信息状态
+	//private List<Client2serCommand> ciStack = new CopyOnWriteArrayList<Client2serCommand>();
 	//@RabbitHandler
-	@RabbitListener(queues = "#{autoDeleteQueue1.name}")
+	@RabbitListener(queues = "#{cli2ServTrainControlQueue.name}")
 	public void receive(String in){
 		logger.info("receive ....." + in);
 		try {
 			mapper.configure(JsonParser.Feature.ALLOW_NUMERIC_LEADING_ZEROS, true);
 			Map<String,Object> tempmap = mapper.readValue(in, Map.class);
 			
-			if(tempmap.size()>0&&tempmap.containsKey("CMD_CLASS")&&!tempmap.get("CMD_CLASS").toString().equals(""))
+			if(tempmap.size()>0 && tempmap.containsKey("CMD_CLASS") && !tempmap.get("CMD_CLASS").toString().equals("") 
+					&& tempmap.containsKey("USER_NAME") && tempmap.containsKey("CLIENT_NUM"))
 			{	
-
 				if(tempmap.get("CMD_CLASS").toString().equals("ci"))
 				{
-					Client2serCommand cmd=mapper.readValue(in, Client2serCommand.class);
+					cmd = mapper.readValue(in, Client2serCommand.class);
+					cli2serjson = new CLient2serJsonCommand();
+					cli2serjson.setJson(in);
+					cli2serjson.setUsername(tempmap.get("USER_NAME").toString());
+					cli2serjson.setClient_num(Integer.parseInt(tempmap.get("CLIENT_NUM").toString()));
+					cmdRepository.save(cli2serjson);
+					System.out.println("json...."+cli2serjson.getId());
+					cli2serjson = null;
 					if(cmd != null)
 					{
 						send2CI(cmd);
@@ -109,18 +132,18 @@ public class Tut5Receiver implements ReceiverInterface{
 
 				if(tempmap.get("CMD_CLASS").toString().equals("password"))
 				{
-					Client2serPwdCommand cmd =mapper.readValue(in, Client2serPwdCommand.class);
+					pwdcmd = mapper.readValue(in, Client2serPwdCommand.class);
 					if(cmd != null)
 					{
-						sendPwdConfirm2CU(cmd);
+						sendPwdConfirm2CU(pwdcmd);
 					}
 				}
 				if(tempmap.get("CMD_CLASS").toString().equals("atsmode"))
 				{
-					StationControl cmd =mapper.readValue(in, StationControl.class);
+					contrcmd = mapper.readValue(in, StationControl.class);
 					if(cmd != null)
 					{
-						sendMode2Client(cmd);
+						sendMode2Client(contrcmd);
 					}
 				}
 			}
@@ -133,28 +156,38 @@ public class Tut5Receiver implements ReceiverInterface{
 
 		
 	}
-	public void sendPwdConfirm2CU(Client2serPwdCommand cmd) throws JsonProcessingException
+	public void sendPwdConfirm2CU(Client2serPwdCommand pwdcmd) throws JsonProcessingException
 	{
 		//logger.info("sendPwdConfirm2CU...."+cmd.getPASSWORD());
 		Client2cuPasswordConfirm pwdconfirm = new Client2cuPasswordConfirm();
-		SendPassword recvpassword = new SendPassword();
-		recvpassword.setClient_num(cmd.getClIENT_NUM());
-		recvpassword.setTraincontrol_cmd_type(cmd.getCMD_TYPE());
-		recvpassword.setUser_name(cmd.getUSER_NAME());
-		recvpassword.setFor_cmd(cmd.getFOR_CMD());
-		recvpassword.setPassword(cmd.getPASSWORD());
-		pwdconfirm.setRecv_password_t(recvpassword);
+		
+		SendPassword password = new SendPassword();
+		password.setClient_num(pwdcmd.getClIENT_NUM());
+		password.setTraincontrol_cmd_type(pwdcmd.getCMD_TYPE());
+		password.setUser_name(pwdcmd.getUSER_NAME());
+		password.setFor_cmd(pwdcmd.getFOR_CMD());
+		
+		password.setPassword(pwdcmd.getPASSWORD());
+		pwdconfirm.setRecv_password_t(password);
+		
 		String obj = mapper.writeValueAsString(pwdconfirm);
+		
 		template.convertAndSend("topic.ats2cu", "ats2cu.cli.password_confirm", obj);
+		pwdcmd = null;
+		
 		logger.info("Sent Client2cuPasswordConfirm to [ats-cu] " + obj + " ");
 	}
-	public void sendMode2Client(StationControl cmd) throws JsonProcessingException
+	public void sendMode2Client(StationControl contrcmd) throws JsonProcessingException
 	{
 		//logger.info("sendMode2Client...."+cmd.getCURRENT_MODE());
 		Ser2ClientModeCommand modecmd = new Ser2ClientModeCommand();
-		modecmd.setStationControl(cmd);
+		modecmd.setStationControl(contrcmd);
+		
 		String obj = mapper.writeValueAsString(modecmd);
+		
 		template.convertAndSend("topic.serv2cli", "serv2cli.traincontrol.model", obj);
+		contrcmd = null;
+		
 		logger.info("Sent StationControl to [ats-client] " + obj + " ");
 	}
 
@@ -180,6 +213,7 @@ public class Tut5Receiver implements ReceiverInterface{
 			msg_header = null;
 			msgcmd = null;
 			cimsg =null;
+			cmd = null;
 		} catch (Exception e) {
 			e.printStackTrace();
 			// TODO: handle exception
@@ -187,12 +221,54 @@ public class Tut5Receiver implements ReceiverInterface{
 		logger.info("Sent to [ci] " + obj + " ");
 	}
 	
+	@RabbitListener(queues = "#{cu2atsCiFeedQueue.name}")
+	public void receiveCu2AtsCiFeed(String in) throws JsonParseException, JsonMappingException, IOException
+	{
+		logger.info("receiveCu2AtsCiFeed "+in);
+		ciFeed = mapper.readValue(in, AmqpCiFeed.class);
+		if(ciFeed != null)
+		{
+			int feed_num = ciFeed.getFeed_num();
+			if(feed_num>0)
+			{
+				for(int i=0;i<feed_num;i++)
+				{
+					Cu2AtsCiFeed ci_feed = ciFeed.getCi_feed_n()[i];
+					ser2clijson = cmdRepository.findOne((long) 74);//根据SN来查询用户名和客户端ID
+					logger.info("ser2clijson ....." + ser2clijson.getJson());
+					if(ci_feed != null && ser2clijson != null && !ser2clijson.equals(""))
+					{
+						ret = new Ret2ClientResult();
+						ret.setClIENT_NUM(ser2clijson.getClient_num());
+						ret.setUSER_NAME(ser2clijson.getUsername());
+						if(ci_feed.getFeed_status()==0x01)
+						{
+							ret.setRESOULT("成功");
+						}
+						else
+						{
+							ret.setRESOULT("失败");
+						}
+						ret.setCMD_TYPE(ci_feed.getFeed_type());
+						ret.setCODE(ci_feed.getFeed_status());//设置状态码
+						ret.setDATA(Integer.toString(ci_feed.getFeed_id()));//进路ID/区段ID/道岔ID
+						String obj =  mapper.writeValueAsString(ret);
+						template.convertAndSend("topic.serv2cli", "serv2cli.traincontrol.command_back", obj);
+						logger.info("send to Client Ret"+in);
+					}
+				}
+			}
+		}
+		ciFeed = null;
+		ser2clijson = null;
+		ret = null;
+	}
 	
-	@RabbitListener(queues = "#{autoDeleteQueue3.name}")
-	public void receiveCuInfo(String in) throws JsonParseException, JsonMappingException, IOException
+	@RabbitListener(queues = "#{cu2atsPwdConfirmFeedQueue.name}")
+	public void receiveCu2AtsPwdConfirmFeed(String in) throws JsonParseException, JsonMappingException, IOException
 	{
 		//RecvPassword recvpassword = mapper.readValue(in,RecvPassword.class);
-		logger.info("receiveCuInfo "+in);
+		logger.info("receiveCu2AtsPwdConfirmFeed "+in);
 		template.convertAndSend("topic.serv2cli", "serv2cli.traincontrol.password_confirm", in);
 		logger.info("send to Client "+in);
 	}

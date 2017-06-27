@@ -74,34 +74,34 @@ public class Tut5Config {
 
 
 		@Bean
-		public Queue autoDeleteQueue1() {
+		public Queue cli2ServTrainControlQueue() {
 			return new AnonymousQueue();
 		}
 
 		@Bean
-		public Queue autoDeleteQueue2() {
+		public Queue cu2atsCiFeedQueue() {
 			return new AnonymousQueue();
 		}
 		
 		@Bean
-		public Queue autoDeleteQueue3() {
+		public Queue cu2atsPwdConfirmFeedQueue() {
 			return new AnonymousQueue();
 		}
 		
 		@Bean
-		public Binding binding1a(@Qualifier("topicCli2Serv") TopicExchange topic, Queue autoDeleteQueue1) {
-			return BindingBuilder.bind(autoDeleteQueue1).to(topic).with("cli2serv.traincontrol.command");
+		public Binding binding1a(@Qualifier("topicCli2Serv") TopicExchange topic, Queue cli2ServTrainControlQueue) {
+			return BindingBuilder.bind(cli2ServTrainControlQueue).to(topic).with("cli2serv.traincontrol.command");
 		}
 		
 		@Bean
-		public Binding binding1c(@Qualifier("topicCU2ATS") TopicExchange topic, Queue autoDeleteQueue2) {
-			return BindingBuilder.bind(autoDeleteQueue2).to(topic).with("cu2ats.ci.status");
+		public Binding binding1c(@Qualifier("topicCU2ATS") TopicExchange topic, Queue cu2atsCiFeedQueue) {
+			return BindingBuilder.bind(cu2atsCiFeedQueue).to(topic).with("cu2ats.ci.command_feedback");
 		}
 		
 		
 		@Bean
-		public Binding binding1f(@Qualifier("topicCU2ATS") TopicExchange topic,Queue autoDeleteQueue3) {
-			return BindingBuilder.bind(autoDeleteQueue3).to(topic).with("cu2ats.cli.password_confirm_back");
+		public Binding binding1f(@Qualifier("topicCU2ATS") TopicExchange topic,Queue cu2atsPwdConfirmFeedQueue) {
+			return BindingBuilder.bind(cu2atsPwdConfirmFeedQueue).to(topic).with("cu2ats.cli.password_confirm_back");
 		}				
 
 	}

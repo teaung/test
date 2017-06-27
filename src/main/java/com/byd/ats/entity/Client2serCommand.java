@@ -12,7 +12,7 @@ public class Client2serCommand {
 	@JsonProperty
 	private int[] CMD_PARAMETER;
 	@JsonProperty
-	private int ClIENT_NUM;
+	private int CLIENT_NUM;
 	@JsonProperty
 	private String USER_NAME;
 	
@@ -40,11 +40,12 @@ public class Client2serCommand {
 	public void setCMD_PARAMETER(int[] cMD_PARAMETER) {
 		CMD_PARAMETER = cMD_PARAMETER;
 	}
-	public int getClIENT_NUM() {
-		return ClIENT_NUM;
+
+	public int getCLIENT_NUM() {
+		return CLIENT_NUM;
 	}
-	public void setClIENT_NUM(int clIENT_NUM) {
-		ClIENT_NUM = clIENT_NUM;
+	public void setCLIENT_NUM(int cLIENT_NUM) {
+		CLIENT_NUM = cLIENT_NUM;
 	}
 	public String getUSER_NAME() {
 		return USER_NAME;

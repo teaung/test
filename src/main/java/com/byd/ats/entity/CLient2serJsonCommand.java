@@ -1,4 +1,4 @@
-/*package com.byd.ats.entity;
+package com.byd.ats.entity;
 
 import java.util.Date;
 
@@ -19,6 +19,7 @@ public class CLient2serJsonCommand {
 	@Column(name = "json",length =1024)
 	private String json;
 	private String username;
+	private int client_num;
 	private Date createtime;
 	public long getId() {
 		return id;
@@ -44,6 +45,11 @@ public class CLient2serJsonCommand {
 	public void setCreatetime(Date createtime) {
 		this.createtime = createtime;
 	}
+	public int getClient_num() {
+		return client_num;
+	}
+	public void setClient_num(int client_num) {
+		this.client_num = client_num;
+	}
 	
 }
-*/

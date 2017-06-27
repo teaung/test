@@ -1,11 +1,18 @@
 package com.byd.ats;
 
+import static org.hamcrest.CoreMatchers.equalTo;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
+import org.apache.log4j.Logger;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
@@ -14,6 +21,7 @@ import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.context.WebApplicationContext;
 
+import com.byd.ats.util.RedisService;
 /*import com.byd.ats.entity.Person;
 import com.byd.ats.service.PersonRepository;*/
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -26,6 +34,14 @@ import junit.framework.Assert;
 @AutoConfigureMockMvc
 public class ServTraincontrolApplicationTests {
 
+	private MockMvc mvc;
+	@Autowired
+	private StringRedisTemplate stringRedisTemplate;
+	@Autowired
+	private RedisTemplate redisTemplate;
+	@Autowired
+	private RedisService redisService;
+	private Logger logger = Logger.getLogger(getClass());
 /*	@Autowired
 	PersonRepository personRepository;
 	MockMvc mvc;
@@ -66,5 +82,19 @@ public class ServTraincontrolApplicationTests {
 	{
 		//System.out.println("0000000000000000000000000000000000000000000");
 	}
-
+	/*
+		@Test
+	public void contextLoads() throws Exception {
+		mvc.perform(MockMvcRequestBuilders.get("/hello").accept(MediaType.APPLICATION_JSON))
+		.andExpect(status().isOk())
+		.andExpect(content().string(equalTo("Hello World")));
+		//stringRedisTemplate.opsForValue().set("aaa", "111");
+		redisService.set("bbb", "222");
+		Assert.assertEquals("222", redisService.get("bbb"));
+		//Assert.assertEquals("111", stringRedisTemplate.opsForValue().get("aaa"));
+		logger.info(".....debug.................."+redisService.get("bbb"));
+		redisService.remove("aaa");
+		redisService.remove("bbb");
+	}
+*/
 }
