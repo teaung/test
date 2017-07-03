@@ -8,6 +8,7 @@ public class Cu2AtsCiFeed {
 	private int feed_status;//执行状态
 	private int feed_id;//进路ID/区段ID/道岔ID
 	private Date feed_time;//计时秒数
+	private long com_serial_num; //序列号
 	public int getFeed_type() {
 		return feed_type;
 	}
@@ -31,6 +32,12 @@ public class Cu2AtsCiFeed {
 	}
 	public void setFeed_time(Date feed_time) {
 		this.feed_time = feed_time;
+	}
+	public long getCom_serial_num() {
+		return com_serial_num;
+	}
+	public void setCom_serial_num(long com_serial_num) {
+		this.com_serial_num = com_serial_num;
 	}
 	
 	

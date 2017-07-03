@@ -6,7 +6,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 public class StationControl {
 
 	@JsonProperty
-	private int ClIENT_NUM;
+	private int CLIENT_NUM;
 	@JsonProperty
 	private String USER_NAME;
 	@JsonProperty
@@ -19,18 +19,20 @@ public class StationControl {
 	private String CURRENT_MODE;
 	@JsonProperty
 	private String MODIFIED_MODE;
-	
 	@JsonIgnore
-	public int getClIENT_NUM() {
-		return ClIENT_NUM;
-	}
-	@JsonIgnore
-	public void setClIENT_NUM(int clIENT_NUM) {
-		ClIENT_NUM = clIENT_NUM;
-	}
+	private String WAY;
+
 	@JsonIgnore
 	public String getUSER_NAME() {
 		return USER_NAME;
+	}
+	@JsonIgnore
+	public int getCLIENT_NUM() {
+		return CLIENT_NUM;
+	}
+	@JsonIgnore
+	public void setCLIENT_NUM(int cLIENT_NUM) {
+		CLIENT_NUM = cLIENT_NUM;
 	}
 	@JsonIgnore
 	public void setUSER_NAME(String uSER_NAME) {
@@ -75,6 +77,14 @@ public class StationControl {
 	@JsonIgnore
 	public void setMODIFIED_MODE(String mODIFIED_MODE) {
 		MODIFIED_MODE = mODIFIED_MODE;
+	}
+	@JsonIgnore
+	public String getWAY() {
+		return WAY;
+	}
+	@JsonIgnore
+	public void setWAY(String wAY) {
+		WAY = wAY;
 	}
 	
 	

@@ -41,7 +41,7 @@ public class RedisService {
 		}
 		return result;
 	}
-
+	
 	/**
 	 * 写入缓存设置时效时间
 	 * @param key

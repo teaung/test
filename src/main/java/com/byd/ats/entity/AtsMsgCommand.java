@@ -7,6 +7,8 @@ public class AtsMsgCommand {
 	private int object_id;
 	private int object_type;
 	private int object_other;
+	private long com_serial_num;
+	
 	public int getCommand_num() {
 		return command_num;
 	}
@@ -37,5 +39,12 @@ public class AtsMsgCommand {
 	public void setObject_other(int object_other) {
 		this.object_other = object_other;
 	}
+	public long getCom_serial_num() {
+		return com_serial_num;
+	}
+	public void setCom_serial_num(long com_serial_num) {
+		this.com_serial_num = com_serial_num;
+	}
+	
 	
 }

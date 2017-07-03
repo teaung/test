@@ -21,6 +21,7 @@ import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.context.WebApplicationContext;
 
+import com.byd.ats.entity.AtsAutoTrigger;
 import com.byd.ats.util.RedisService;
 /*import com.byd.ats.entity.Person;
 import com.byd.ats.service.PersonRepository;*/
@@ -35,10 +36,10 @@ import junit.framework.Assert;
 public class ServTraincontrolApplicationTests {
 
 	private MockMvc mvc;
-	@Autowired
+/*	@Autowired
 	private StringRedisTemplate stringRedisTemplate;
 	@Autowired
-	private RedisTemplate redisTemplate;
+	private RedisTemplate redisTemplate;*/
 	@Autowired
 	private RedisService redisService;
 	private Logger logger = Logger.getLogger(getClass());
@@ -82,19 +83,23 @@ public class ServTraincontrolApplicationTests {
 	{
 		//System.out.println("0000000000000000000000000000000000000000000");
 	}
-	/*
-		@Test
+	
+/*		@Test
 	public void contextLoads() throws Exception {
 		mvc.perform(MockMvcRequestBuilders.get("/hello").accept(MediaType.APPLICATION_JSON))
 		.andExpect(status().isOk())
 		.andExpect(content().string(equalTo("Hello World")));
 		//stringRedisTemplate.opsForValue().set("aaa", "111");
-		redisService.set("bbb", "222");
-		Assert.assertEquals("222", redisService.get("bbb"));
+			AtsAutoTrigger auto = new AtsAutoTrigger();
+			auto.setId(123);
+			auto.setName("zhangsan");
+		//redisService.set("bbb", auto);
+		//Assert.assertEquals("222", redisService.get("bbb"));
+		//redisService.set("bbb", "111");
 		//Assert.assertEquals("111", stringRedisTemplate.opsForValue().get("aaa"));
-		logger.info(".....debug.................."+redisService.get("bbb"));
-		redisService.remove("aaa");
-		redisService.remove("bbb");
-	}
-*/
+		AtsAutoTrigger dd = (AtsAutoTrigger) redisService.get("bbb");
+		logger.info(".....debug.................."+dd.getId()+"  "+dd.getName());
+
+	}*/
+
 }

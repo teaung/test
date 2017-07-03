@@ -6,7 +6,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 public class Client2serPwdCommand {
 
 	@JsonProperty
-	private int ClIENT_NUM;
+	private int CLIENT_NUM;
 	@JsonProperty
 	private String USER_NAME;
 	@JsonProperty
@@ -17,13 +17,14 @@ public class Client2serPwdCommand {
 	private int FOR_CMD;
 	@JsonProperty
 	private String PASSWORD;
+
 	@JsonIgnore
-	public int getClIENT_NUM() {
-		return ClIENT_NUM;
+	public int getCLIENT_NUM() {
+		return CLIENT_NUM;
 	}
 	@JsonIgnore
-	public void setClIENT_NUM(int clIENT_NUM) {
-		ClIENT_NUM = clIENT_NUM;
+	public void setCLIENT_NUM(int cLIENT_NUM) {
+		CLIENT_NUM = cLIENT_NUM;
 	}
 	@JsonIgnore
 	public String getUSER_NAME() {
