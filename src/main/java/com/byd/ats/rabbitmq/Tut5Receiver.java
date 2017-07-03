@@ -140,6 +140,7 @@ public class Tut5Receiver implements ReceiverInterface{
 						cli2serjson.setUsername(tempmap.get("USER_NAME").toString());
 						cli2serjson.setClient_num(Integer.parseInt(tempmap.get("CLIENT_NUM").toString()));
 						cmdRepository.save(cli2serjson);
+						
 						send2CI(cmd,cli2serjson);
 					}
 				}
@@ -152,6 +153,7 @@ public class Tut5Receiver implements ReceiverInterface{
 						sendPwdConfirm2CU(pwdcmd);
 					}
 				}
+				
 				if(tempmap.get("CMD_CLASS").toString().equals("atsmode"))
 				{
 					contrcmd = mapper.readValue(in, StationControl.class);
@@ -218,18 +220,24 @@ public class Tut5Receiver implements ReceiverInterface{
 	public void send2CI(Client2serCommand cmd,CLient2serJsonCommand cli2serjson) throws JsonProcessingException {
 
 	    cimsg = new Ats2ciMsgComm();
+	    
 		header_info = new HeaderInfo();
+		
 		msg_header = new MsgHeader();
 		msg_header.setMsg_type((short)0x203);
+		
 	    msgcmd = new AtsMsgCommand();
 		msgcmd.setCommand_num(1);
 		msgcmd.setCommand_type(cmd.getCMD_TYPE());
 		msgcmd.setObject_id(cmd.getCMD_PARAMETER()[0]);
 		msgcmd.setCom_serial_num(cli2serjson.getId());
+		
 		cimsg.setHeader_info(header_info);
 		cimsg.setMsg_header(msg_header);
 		cimsg.setAts_msg_command(msgcmd);
+		
 		String obj =  mapper.writeValueAsString(cimsg);
+		
 		try {
 			//TopicExchange topic_ats2cu  =new TopicExchange("topic.ats2cu");
 			template.convertAndSend("topic.ats2cu", ats2cicmdKey, obj);
