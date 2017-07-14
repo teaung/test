@@ -74,26 +74,26 @@ public class Tut5Config {
 
 		@Bean
 		public Queue cli2ServTrainControlQueue() {
-			//return new AnonymousQueue();
-			return new Queue("q.traincontrol.traincontrol");
+			return new AnonymousQueue();
+			//return new Queue("q.traincontrol.traincontrol");
 		}
 
 		@Bean
 		public Queue cu2atsCiFeedQueue() {
-			//return new AnonymousQueue();
-			return new Queue("q.traincontrol.cifeed");
+			return new AnonymousQueue();
+			//return new Queue("q.traincontrol.cifeed");
 		}
 		
 		@Bean
 		public Queue cu2atsPwdConfirmFeedQueue() {
-			//return new AnonymousQueue();
-			return new Queue("q.traincontrol.pwdconfirmfeed");
+			return new AnonymousQueue();
+			//return new Queue("q.traincontrol.pwdconfirmfeed");
 		}
 		
 		@Bean
 		public Queue routeAttributeQueue() {
-			//return new AnonymousQueue();
-			return new Queue("q.traincontrol.routeAttribute");
+			return new AnonymousQueue();
+			//return new Queue("q.traincontrol.routeAttribute");
 		}
 		@Bean
 		public Binding binding1a(@Qualifier("topicCli2Serv") TopicExchange topic, Queue cli2ServTrainControlQueue) {

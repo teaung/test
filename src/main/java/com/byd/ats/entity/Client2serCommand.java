@@ -6,53 +6,55 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 public class Client2serCommand {
 
 	@JsonProperty
-	private String CMD_CLASS;
+	private String cmd_class;
 	@JsonProperty
-	private int CMD_TYPE;
+	private int stationcontrol_cmd_type;
 	@JsonProperty
-	private int[] CMD_PARAMETER;
+	private int[] cmd_parameter;
 	@JsonProperty
-	private int CLIENT_NUM;
+	private int client_num;
 	@JsonProperty
-	private String USER_NAME;
+	private String user_name;
 	
 	@JsonIgnore
-	public String getCMD_CLASS() {
-		return CMD_CLASS;
+	public String getCmd_class() {
+		return cmd_class;
 	}
 	@JsonIgnore
-	public void setCMD_CLASS(String cMD_CLASS) {
-		CMD_CLASS = cMD_CLASS;
+	public void setCmd_class(String cmd_class) {
+		this.cmd_class = cmd_class;
 	}
 	@JsonIgnore
-	public int getCMD_TYPE() {
-		return CMD_TYPE;
+	public int getStationcontrol_cmd_type() {
+		return stationcontrol_cmd_type;
 	}
 	@JsonIgnore
-	public void setCMD_TYPE(int cMD_TYPE) {
-		CMD_TYPE = cMD_TYPE;
+	public void setStationcontrol_cmd_type(int stationcontrol_cmd_type) {
+		this.stationcontrol_cmd_type = stationcontrol_cmd_type;
 	}
 	@JsonIgnore
-	public int[] getCMD_PARAMETER() {
-		return CMD_PARAMETER;
+	public int[] getCmd_parameter() {
+		return cmd_parameter;
 	}
 	@JsonIgnore
-	public void setCMD_PARAMETER(int[] cMD_PARAMETER) {
-		CMD_PARAMETER = cMD_PARAMETER;
+	public void setCmd_parameter(int[] cmd_parameter) {
+		this.cmd_parameter = cmd_parameter;
 	}
-
-	public int getCLIENT_NUM() {
-		return CLIENT_NUM;
+	@JsonIgnore
+	public int getClient_num() {
+		return client_num;
 	}
-	public void setCLIENT_NUM(int cLIENT_NUM) {
-		CLIENT_NUM = cLIENT_NUM;
+	@JsonIgnore
+	public void setClient_num(int client_num) {
+		this.client_num = client_num;
 	}
-	public String getUSER_NAME() {
-		return USER_NAME;
+	@JsonIgnore
+	public String getUser_name() {
+		return user_name;
 	}
-	public void setUSER_NAME(String uSER_NAME) {
-		USER_NAME = uSER_NAME;
+	@JsonIgnore
+	public void setUser_name(String user_name) {
+		this.user_name = user_name;
 	}
-
-
+	
 }

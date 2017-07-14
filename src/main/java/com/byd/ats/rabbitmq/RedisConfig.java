@@ -1,4 +1,4 @@
-package com.byd.ats.rabbitmq;
+/*package com.byd.ats.rabbitmq;
 
 import java.lang.reflect.Method;
 
@@ -22,10 +22,10 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 @EnableCaching
 public class RedisConfig extends CachingConfigurerSupport{
 
-	/**
+	*//**
      * 生成key的策略
      * @return
-     */
+     *//*
     @Bean
     public KeyGenerator keyGenerator() {
         return new KeyGenerator() {
@@ -42,18 +42,18 @@ public class RedisConfig extends CachingConfigurerSupport{
         };
     }
     
-    /**
+    *//**
      * 管理缓存
-     */
+     *//*
     @Bean
     public CacheManager cacheManager(RedisTemplate redisTemplate) {
         RedisCacheManager rcm = new RedisCacheManager(redisTemplate);
         return rcm;
     }
     
-    /**
+    *//**
      * RedisTemplate配置
-     */
+     *//*
     @Bean
     public RedisTemplate<String, String> redisTemplate(RedisConnectionFactory factory) {
         StringRedisTemplate template = new StringRedisTemplate(factory);
@@ -67,3 +67,4 @@ public class RedisConfig extends CachingConfigurerSupport{
         return template;
     }
 }
+*/

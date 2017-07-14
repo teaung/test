@@ -6,86 +6,85 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 public class StationControl {
 
 	@JsonProperty
-	private int CLIENT_NUM;
+	private int client_num;
 	@JsonProperty
-	private String USER_NAME;
+	private String user_name;
 	@JsonProperty
-	private int CMD_TYPE;
+	private int stationcontrol_cmd_type;
 	@JsonProperty
-	private String CMD_CLASS;
+	private String cmd_class;
 	@JsonProperty
-	private int CI_NUM;
+	private int ci_num;
 	@JsonProperty
-	private String CURRENT_MODE;
+	private int current_mode;
 	@JsonProperty
-	private String MODIFIED_MODE;
+	private int modified_mode;
 	@JsonIgnore
-	private String WAY;
+	private int way;
+	
+	@JsonIgnore
+	public int getClient_num() {
+		return client_num;
+	}
+	@JsonIgnore
+	public void setClient_num(int client_num) {
+		this.client_num = client_num;
+	}
+	@JsonIgnore
+	public String getUser_name() {
+		return user_name;
+	}
+	@JsonIgnore
+	public void setUser_name(String user_name) {
+		this.user_name = user_name;
+	}
+	@JsonIgnore
+	public int getStationcontrol_cmd_type() {
+		return stationcontrol_cmd_type;
+	}
+	@JsonIgnore
+	public void setStationcontrol_cmd_type(int stationcontrol_cmd_type) {
+		this.stationcontrol_cmd_type = stationcontrol_cmd_type;
+	}
+	@JsonIgnore
+	public String getCmd_class() {
+		return cmd_class;
+	}
+	@JsonIgnore
+	public void setCmd_class(String cmd_class) {
+		this.cmd_class = cmd_class;
+	}
+	@JsonIgnore
+	public int getCi_num() {
+		return ci_num;
+	}
+	@JsonIgnore
+	public void setCi_num(int ci_num) {
+		this.ci_num = ci_num;
+	}
+	@JsonIgnore
+	public int getCurrent_mode() {
+		return current_mode;
+	}
+	@JsonIgnore
+	public void setCurrent_mode(int current_mode) {
+		this.current_mode = current_mode;
+	}
+	@JsonIgnore
+	public int getModified_mode() {
+		return modified_mode;
+	}
+	@JsonIgnore
+	public void setModified_mode(int modified_mode) {
+		this.modified_mode = modified_mode;
+	}
+	@JsonIgnore
+	public int getWay() {
+		return way;
+	}
+	@JsonIgnore
+	public void setWay(int way) {
+		this.way = way;
+	}
 
-	@JsonIgnore
-	public String getUSER_NAME() {
-		return USER_NAME;
-	}
-	@JsonIgnore
-	public int getCLIENT_NUM() {
-		return CLIENT_NUM;
-	}
-	@JsonIgnore
-	public void setCLIENT_NUM(int cLIENT_NUM) {
-		CLIENT_NUM = cLIENT_NUM;
-	}
-	@JsonIgnore
-	public void setUSER_NAME(String uSER_NAME) {
-		USER_NAME = uSER_NAME;
-	}
-	@JsonIgnore
-	public int getCMD_TYPE() {
-		return CMD_TYPE;
-	}
-	@JsonIgnore
-	public void setCMD_TYPE(int cMD_TYPE) {
-		CMD_TYPE = cMD_TYPE;
-	}
-	@JsonIgnore
-	public String getCMD_CLASS() {
-		return CMD_CLASS;
-	}
-	@JsonIgnore
-	public void setCMD_CLASS(String cMD_CLASS) {
-		CMD_CLASS = cMD_CLASS;
-	}
-	@JsonIgnore
-	public int getCI_NUM() {
-		return CI_NUM;
-	}
-	@JsonIgnore
-	public void setCI_NUM(int cI_NUM) {
-		CI_NUM = cI_NUM;
-	}
-	@JsonIgnore
-	public String getCURRENT_MODE() {
-		return CURRENT_MODE;
-	}
-	@JsonIgnore
-	public void setCURRENT_MODE(String cURRENT_MODE) {
-		CURRENT_MODE = cURRENT_MODE;
-	}
-	@JsonIgnore
-	public String getMODIFIED_MODE() {
-		return MODIFIED_MODE;
-	}
-	@JsonIgnore
-	public void setMODIFIED_MODE(String mODIFIED_MODE) {
-		MODIFIED_MODE = mODIFIED_MODE;
-	}
-	@JsonIgnore
-	public String getWAY() {
-		return WAY;
-	}
-	@JsonIgnore
-	public void setWAY(String wAY) {
-		WAY = wAY;
-	}
-	
-	
 }

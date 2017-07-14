@@ -10,7 +10,7 @@ public class SendPassword {
 	@JsonProperty
 	private String user_name;
 	@JsonProperty
-	private int traincontrol_cmd_type;
+	private int stationcontrol_cmd_type;
 	@JsonProperty
 	private int for_cmd;
 	@JsonProperty
@@ -33,12 +33,12 @@ public class SendPassword {
 		this.user_name = user_name;
 	}
 	@JsonIgnore
-	public int getTraincontrol_cmd_type() {
-		return traincontrol_cmd_type;
+	public int getStationcontrol_cmd_type() {
+		return stationcontrol_cmd_type;
 	}
 	@JsonIgnore
-	public void setTraincontrol_cmd_type(int traincontrol_cmd_type) {
-		this.traincontrol_cmd_type = traincontrol_cmd_type;
+	public void setStationcontrol_cmd_type(int stationcontrol_cmd_type) {
+		this.stationcontrol_cmd_type = stationcontrol_cmd_type;
 	}
 	@JsonIgnore
 	public int getFor_cmd() {

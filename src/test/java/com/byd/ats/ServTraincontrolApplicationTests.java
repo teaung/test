@@ -11,8 +11,6 @@ import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.data.redis.core.RedisTemplate;
-import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
@@ -20,9 +18,6 @@ import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.context.WebApplicationContext;
-
-import com.byd.ats.entity.AtsAutoTrigger;
-import com.byd.ats.util.RedisService;
 /*import com.byd.ats.entity.Person;
 import com.byd.ats.service.PersonRepository;*/
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -40,8 +35,8 @@ public class ServTraincontrolApplicationTests {
 	private StringRedisTemplate stringRedisTemplate;
 	@Autowired
 	private RedisTemplate redisTemplate;*/
-	@Autowired
-	private RedisService redisService;
+/*	@Autowired
+	private RedisService redisService;*/
 	private Logger logger = Logger.getLogger(getClass());
 /*	@Autowired
 	PersonRepository personRepository;
