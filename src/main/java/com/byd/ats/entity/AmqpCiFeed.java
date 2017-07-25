@@ -1,12 +1,16 @@
 package com.byd.ats.entity;
 
+import java.util.List;
+
 public class AmqpCiFeed {
 
 	private HeaderInfo header_info;
 	private MsgHeader msg_header;
 	private int feed_num;
 	private Timestamp t_stamp;
-	private Cu2AtsCiFeed[] ci_feed_n;
+	//private Cu2AtsCiFeed[] ci_feed_n;
+	private List<Cu2AtsCiFeed> ci_feed_n;
+	
 	public HeaderInfo getHeader_info() {
 		return header_info;
 	}
@@ -25,10 +29,10 @@ public class AmqpCiFeed {
 	public void setFeed_num(int feed_num) {
 		this.feed_num = feed_num;
 	}
-	public Cu2AtsCiFeed[] getCi_feed_n() {
+	public List<Cu2AtsCiFeed> getCi_feed_n() {
 		return ci_feed_n;
 	}
-	public void setCi_feed_n(Cu2AtsCiFeed[] ci_feed_n) {
+	public void setCi_feed_n(List<Cu2AtsCiFeed> ci_feed_n) {
 		this.ci_feed_n = ci_feed_n;
 	}
 	public Timestamp getT_stamp() {

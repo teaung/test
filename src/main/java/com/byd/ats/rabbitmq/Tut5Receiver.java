@@ -372,18 +372,32 @@ public class Tut5Receiver implements ReceiverInterface{
 	 * @throws IOException
 	 */
 	@RabbitListener(queues = "#{cu2atsCiFeedQueue.name}")
-	public void receiveCu2AtsCiFeed(String in) throws JsonParseException, JsonMappingException, IOException
+	//public void receiveCu2AtsCiFeed(String in) throws JsonParseException, JsonMappingException, IOException
+	public void receiveCu2AtsCiFeed(String in)
 	{
-		logger.info("receiveCu2AtsCiFeed "+in);
-		ciFeed = mapper.readValue(in, AmqpCiFeed.class);
+		logger.info("receiveCu2AtsCiFeed(): "+in);
+		try {
+			ciFeed = mapper.readValue(in, AmqpCiFeed.class);
+		} catch (JsonParseException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (JsonMappingException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+
 		if(ciFeed != null)
 		{
 			int feed_num = ciFeed.getFeed_num();
+			logger.info("receiveCu2AtsCiFeed(): feed_num=" + feed_num);
 			if(feed_num>0)
 			{
 				for(int i=0;i<feed_num;i++)
 				{
-					Cu2AtsCiFeed ci_feed = ciFeed.getCi_feed_n()[i];
+					Cu2AtsCiFeed ci_feed = ciFeed.getCi_feed_n().get(i);
 					ser2clijson = cmdRepository.findOne(ci_feed.getCom_serial_num());//根据SN来查询用户名和客户端ID
 					logger.info("ser2clijson ....." + ser2clijson.getJson());
 					if(ci_feed != null && ser2clijson != null)
@@ -402,8 +416,15 @@ public class Tut5Receiver implements ReceiverInterface{
 						ret.setCMD_TYPE(ci_feed.getFeed_type());
 						ret.setCODE(ci_feed.getFeed_status());//设置状态码
 						ret.setDATA(Integer.toString(ci_feed.getFeed_id()));//进路ID/区段ID/道岔ID
-						ret.setDATA(ci_feed.getFeed_time().toGMTString());//保留计时秒数
-						String obj =  mapper.writeValueAsString(ret);
+						//ret.setDATA(ci_feed.getFeed_time().toGMTString());//保留计时秒数
+						ret.setDATA(Integer.toString(ci_feed.getFeed_time()));//保留计时秒数
+						String obj = null;
+						try {
+							obj = mapper.writeValueAsString(ret);
+						} catch (JsonProcessingException e) {
+							// TODO Auto-generated catch block
+							e.printStackTrace();
+						}
 						template.convertAndSend("topic.serv2cli", "serv2cli.traincontrol.command_back", obj);
 						logger.info("send to Client Ret"+in);
 					}
