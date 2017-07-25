@@ -5,6 +5,7 @@ public class AmqpCiFeed {
 	private HeaderInfo header_info;
 	private MsgHeader msg_header;
 	private int feed_num;
+	private Timestamp t_stamp;
 	private Cu2AtsCiFeed[] ci_feed_n;
 	public HeaderInfo getHeader_info() {
 		return header_info;
@@ -29,6 +30,12 @@ public class AmqpCiFeed {
 	}
 	public void setCi_feed_n(Cu2AtsCiFeed[] ci_feed_n) {
 		this.ci_feed_n = ci_feed_n;
+	}
+	public Timestamp getT_stamp() {
+		return t_stamp;
+	}
+	public void setT_stamp(Timestamp t_stamp) {
+		this.t_stamp = t_stamp;
 	}
 	
 	

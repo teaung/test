@@ -1,10 +1,10 @@
 package com.byd.ats.entity;
 public class HeaderInfo {
 	private int inface_type;
-	private int send_vender;
-	private int receive_vender;
+	private long send_vender;
+	private long receive_vender;
 	private byte map_version;
-	private int map_crc;
+	private long map_crc;
 	private int msg_cnum;
 	private byte comm_cycle;
 	private int msg_snum_side;
@@ -18,16 +18,16 @@ public class HeaderInfo {
 		this.inface_type = inface_type;
 	}
 
-	public int getSend_vender() {
+	public long getSend_vender() {
 		return send_vender;
 	}
-	public void setSend_vender(int send_vender) {
+	public void setSend_vender(long send_vender) {
 		this.send_vender = send_vender;
 	}
-	public int getReceive_vender() {
+	public long getReceive_vender() {
 		return receive_vender;
 	}
-	public void setReceive_vender(int receive_vender) {
+	public void setReceive_vender(long receive_vender) {
 		this.receive_vender = receive_vender;
 	}
 	public byte getMap_version() {
@@ -36,10 +36,10 @@ public class HeaderInfo {
 	public void setMap_version(byte map_version) {
 		this.map_version = map_version;
 	}
-	public int getMap_crc() {
+	public long getMap_crc() {
 		return map_crc;
 	}
-	public void setMap_crc(int map_crc) {
+	public void setMap_crc(long map_crc) {
 		this.map_crc = map_crc;
 	}
 	public int getMsg_cnum() {
