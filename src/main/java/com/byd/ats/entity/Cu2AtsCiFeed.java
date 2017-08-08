@@ -2,6 +2,9 @@ package com.byd.ats.entity;
 
 import java.util.Date;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+
+//@JsonIgnoreProperties(ignoreUnknown = true)
 public class Cu2AtsCiFeed {
 /*
 "ci_feed_n":[{"feed_type":0,"feed_status":1,"feed_id":0,"feed_time":0,"com_serial_num":0},

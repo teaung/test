@@ -6,64 +6,57 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 public class Ret2ClientResult {
 
 	@JsonProperty
-	private int ClIENT_NUM;
+	private int client_num;
 	@JsonProperty
-	private String USER_NAME;
+	private String user_name;
 	@JsonProperty
-	private int CMD_TYPE;
+	private int stationcontrol_cmd_type;
 	@JsonProperty
-	private String RESOULT;
+	private int resoult;
 	@JsonProperty
-	private int CODE;
+	private int cmd_parameter;//反馈参数，即相关ID
 	@JsonProperty
-	private String DATA;
-	@JsonIgnore
-	public int getClIENT_NUM() {
-		return ClIENT_NUM;
+	private int countdownTime;//倒计时秒数
+	
+	public int getClient_num() {
+		return client_num;
 	}
-	@JsonIgnore
-	public void setClIENT_NUM(int clIENT_NUM) {
-		ClIENT_NUM = clIENT_NUM;
+	public void setClient_num(int client_num) {
+		this.client_num = client_num;
 	}
-	@JsonIgnore
-	public String getUSER_NAME() {
-		return USER_NAME;
+	public String getUser_name() {
+		return user_name;
 	}
-	@JsonIgnore
-	public void setUSER_NAME(String uSER_NAME) {
-		USER_NAME = uSER_NAME;
+	public void setUser_name(String user_name) {
+		this.user_name = user_name;
 	}
-	@JsonIgnore
-	public int getCMD_TYPE() {
-		return CMD_TYPE;
+	public int getStationcontrol_cmd_type() {
+		return stationcontrol_cmd_type;
 	}
-	@JsonIgnore
-	public void setCMD_TYPE(int cMD_TYPE) {
-		CMD_TYPE = cMD_TYPE;
+	public void setStationcontrol_cmd_type(int stationcontrol_cmd_type) {
+		this.stationcontrol_cmd_type = stationcontrol_cmd_type;
 	}
-	@JsonIgnore
-	public String getRESOULT() {
-		return RESOULT;
+
+	public int getResoult() {
+		return resoult;
 	}
-	@JsonIgnore
-	public void setRESOULT(String rESOULT) {
-		RESOULT = rESOULT;
+	public void setResoult(int resoult) {
+		this.resoult = resoult;
 	}
-	@JsonIgnore
-	public int getCODE() {
-		return CODE;
+	public int getCmd_parameter() {
+		return cmd_parameter;
 	}
-	@JsonIgnore
-	public void setCODE(int cODE) {
-		CODE = cODE;
+	public void setCmd_parameter(int cmd_parameter) {
+		this.cmd_parameter = cmd_parameter;
 	}
-	@JsonIgnore
-	public String getDATA() {
-		return DATA;
+	public int getCountdownTime() {
+		return countdownTime;
 	}
-	@JsonIgnore
-	public void setDATA(String dATA) {
-		DATA = dATA;
+	public void setCountdownTime(int countdownTime) {
+		this.countdownTime = countdownTime;
 	}
+
+	
+
 		
 }

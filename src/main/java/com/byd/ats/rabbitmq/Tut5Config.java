@@ -74,27 +74,40 @@ public class Tut5Config {
 
 		@Bean
 		public Queue cli2ServTrainControlQueue() {
-			return new AnonymousQueue();
-			//return new Queue("q.traincontrol.traincontrol");
+			//return new AnonymousQueue();
+			return new Queue("q.traincontrol.traincontrol");
 		}
 
 		@Bean
 		public Queue cu2atsCiFeedQueue() {
-			return new AnonymousQueue();
-			//return new Queue("q.traincontrol.cifeed");
+			//return new AnonymousQueue();
+			return new Queue("q.traincontrol.cifeed");
 		}
 		
 		@Bean
 		public Queue cu2atsPwdConfirmFeedQueue() {
-			return new AnonymousQueue();
-			//return new Queue("q.traincontrol.pwdconfirmfeed");
+			//return new AnonymousQueue();
+			return new Queue("q.traincontrol.pwdconfirmfeed");
 		}
 		
 		@Bean
 		public Queue routeAttributeQueue() {
-			return new AnonymousQueue();
-			//return new Queue("q.traincontrol.routeAttribute");
+			//return new AnonymousQueue();
+			return new Queue("q.traincontrol.routeAttribute");
 		}
+		
+		@Bean
+		public Queue cu2atsModeSwitchQueue() {
+			//return new AnonymousQueue();
+			return new Queue("q.traincontrol.cu2atsModeSwitch");
+		}
+		
+		@Bean
+		public Queue cu2atsCiInterruptWarningQueue() {
+			//return new AnonymousQueue();
+			return new Queue("q.traincontrol.cu2atsCiInterruptWarning");
+		}
+		
 		@Bean
 		public Binding binding1a(@Qualifier("topicCli2Serv") TopicExchange topic, Queue cli2ServTrainControlQueue) {
 			return BindingBuilder.bind(cli2ServTrainControlQueue).to(topic).with("cli2serv.traincontrol.command");
@@ -110,6 +123,16 @@ public class Tut5Config {
 		public Binding binding1f(@Qualifier("topicCU2ATS") TopicExchange topic,Queue cu2atsPwdConfirmFeedQueue) {
 			return BindingBuilder.bind(cu2atsPwdConfirmFeedQueue).to(topic).with("cu2ats.cli.password_confirm_back");
 		}		
+
+		@Bean
+		public Binding binding1g(@Qualifier("topicCU2ATS") TopicExchange topic,Queue cu2atsModeSwitchQueue) {
+			return BindingBuilder.bind(cu2atsModeSwitchQueue).to(topic).with("cu2ats.ci.fault");
+		}
+		
+		@Bean
+		public Binding binding1h(@Qualifier("topicCU2ATS") TopicExchange topic,Queue cu2atsCiInterruptWarningQueue) {
+			return BindingBuilder.bind(cu2atsCiInterruptWarningQueue).to(topic).with("cu2ats.cu.warning");
+		}
 
 	}
 

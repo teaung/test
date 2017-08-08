@@ -2,13 +2,14 @@ package com.byd.ats.entity;
 
 import java.util.List;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+
 public class AmqpCiFeed {
 
 	private HeaderInfo header_info;
 	private MsgHeader msg_header;
 	private int feed_num;
 	private Timestamp t_stamp;
-	//private Cu2AtsCiFeed[] ci_feed_n;
 	private List<Cu2AtsCiFeed> ci_feed_n;
 	
 	public HeaderInfo getHeader_info() {

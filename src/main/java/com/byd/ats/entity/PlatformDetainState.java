@@ -15,7 +15,7 @@ public class PlatformDetainState {
 	@GeneratedValue(strategy=GenerationType.IDENTITY)
 	private long id;
 	private String key1;
-	@Column(name = "value1",length =1024)
+	@Column(name = "value1",length =2048)
 	private String value1;
 	public long getId() {
 		return id;

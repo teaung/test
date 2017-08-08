@@ -1,4 +1,4 @@
-package com.byd.ats.entity;
+/*package com.byd.ats.entity;
 
 public class AmqpCiStatus {
 
@@ -40,3 +40,4 @@ public class AmqpCiStatus {
 	
 	
 }
+*/
