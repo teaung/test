@@ -4,20 +4,29 @@ import static org.hamcrest.CoreMatchers.equalTo;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.apache.log4j.Logger;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.cloud.client.loadbalancer.LoadBalanced;
+import org.springframework.context.annotation.Bean;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+import org.springframework.web.client.RestTemplate;
 import org.springframework.web.context.WebApplicationContext;
+
+import com.byd.ats.entity.Client2serCommand;
 /*import com.byd.ats.entity.Person;
 import com.byd.ats.service.PersonRepository;*/
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -37,7 +46,11 @@ public class ServTraincontrolApplicationTests {
 	private RedisTemplate redisTemplate;*/
 /*	@Autowired
 	private RedisService redisService;*/
-	private Logger logger = Logger.getLogger(getClass());
+	//private Logger logger = Logger.getLogger(getClass());
+	//public ObjectMapper mapper = new ObjectMapper();
+	//@Autowired
+	//private RabbitTemplate template;
+	
 /*	@Autowired
 	PersonRepository personRepository;
 	MockMvc mvc;
@@ -76,7 +89,23 @@ public class ServTraincontrolApplicationTests {
 	@Test
 	public void test2()
 	{
-		//System.out.println("0000000000000000000000000000000000000000000");
+/*		Client2serCommand client2serCommand = new Client2serCommand();
+		client2serCommand.setCmd_class("aod");
+		client2serCommand.setStationcontrol_cmd_type(104);
+		client2serCommand.setClient_num(101);
+		client2serCommand.setUser_name("213");
+		List<Integer> cmd_parameter = new ArrayList<Integer>();
+		cmd_parameter.add(1);
+		cmd_parameter.add(2);
+		client2serCommand.setCmd_parameter(cmd_parameter);
+		try {
+			String json = mapper.writeValueAsString(client2serCommand);
+			template.convertAndSend("topic.cli2serv", "cli2serv.traincontrol.command", json);
+		} catch (JsonProcessingException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		System.out.println("0000000000000000000000000000000000000000000");*/
 	}
 	
 /*		@Test

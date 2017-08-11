@@ -23,7 +23,11 @@ import org.springframework.amqp.core.TopicExchange;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
+import org.springframework.web.client.RestTemplate;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.boot.web.client.RestTemplateBuilder;
+import org.springframework.cloud.client.loadbalancer.LoadBalanced;
 
 /**
  * @author Gary Russell
@@ -54,10 +58,11 @@ public class Tut5Config {
 	}
 	
 	@Bean
-	public TopicExchange topicServ2Cont() {
+	public TopicExchange topicTraintrace() {
 		return new TopicExchange("topic.ats.traintrace");
 		//return new TopicExchange("topic.cu2ats");
 	}
+    
 	//@Profile("dev")
 	private static class ReceiverConfig {
 
@@ -109,6 +114,11 @@ public class Tut5Config {
 		}
 		
 		@Bean
+		public Queue ser2serTraintraceQueue() {
+			//return new AnonymousQueue();
+			return new Queue("q.traincontrol.trainArriveStatus");
+		}
+		@Bean
 		public Binding binding1a(@Qualifier("topicCli2Serv") TopicExchange topic, Queue cli2ServTrainControlQueue) {
 			return BindingBuilder.bind(cli2ServTrainControlQueue).to(topic).with("cli2serv.traincontrol.command");
 		}
@@ -134,6 +144,10 @@ public class Tut5Config {
 			return BindingBuilder.bind(cu2atsCiInterruptWarningQueue).to(topic).with("cu2ats.cu.warning");
 		}
 
+		@Bean
+		public Binding binding1i(@Qualifier("topicTraintrace") TopicExchange topic,Queue ser2serTraintraceQueue) {
+			return BindingBuilder.bind(ser2serTraintraceQueue).to(topic).with("ats.traintrace.station.arrive");
+		}
 	}
 
 	//@Profile("sender")

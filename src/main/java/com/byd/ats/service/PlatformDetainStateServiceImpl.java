@@ -27,6 +27,13 @@ public class PlatformDetainStateServiceImpl implements PlatformDetainStateServic
 	public void save(PlatformDetainState state) {
 		// TODO Auto-generated method stub
 		detainStateRepository.saveAndFlush(state);
+		
+	}
+
+	@Override
+	public void delete(PlatformDetainState state) {
+		// TODO Auto-generated method stub
+		detainStateRepository.delete(state);
 	}
 
 }

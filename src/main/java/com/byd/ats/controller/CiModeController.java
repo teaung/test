@@ -31,7 +31,7 @@ public class CiModeController {
 		{
 			cimode = listmode.get(0);
 			json = "{\"control_mode_status\":"+cimode.getCi_mode()+"}";
-			logger.info("senderPlatformStateToClient:"+json);
+			logger.debug("senderPlatformStateToClient:"+json);
 		}
 		return json;
 		

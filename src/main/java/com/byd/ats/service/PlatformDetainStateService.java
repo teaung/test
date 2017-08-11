@@ -9,4 +9,5 @@ public interface PlatformDetainStateService {
 
 	public PlatformDetainState findByKey(String key);
 	public void save(PlatformDetainState state);
+	public void delete(PlatformDetainState state);
 }

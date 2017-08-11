@@ -20,6 +20,7 @@ public class CLient2serJsonCommand {
 	private String json;
 	private String username;
 	private int client_num;
+	private int ret;
 	private Date createtime;
 	public long getId() {
 		return id;
@@ -50,6 +51,12 @@ public class CLient2serJsonCommand {
 	}
 	public void setClient_num(int client_num) {
 		this.client_num = client_num;
+	}
+	public int getRet() {
+		return ret;
+	}
+	public void setRet(int ret) {
+		this.ret = ret;
 	}
 	
 }

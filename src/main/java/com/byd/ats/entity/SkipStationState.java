@@ -8,13 +8,12 @@ import javax.persistence.Id;
 import javax.persistence.Table;
 
 @Entity
-@Table(name = "tb_platform_detain_state")
-public class PlatformDetainState {
+@Table(name = "tb_skip_station_state")
+public class SkipStationState {
 
 	@Id
 	@GeneratedValue(strategy=GenerationType.IDENTITY)
 	private long id;
-	@Column(name = "key1",length =1024)
 	private String key1;
 	@Column(name = "value1",length =2048)
 	private String value1;
@@ -36,7 +35,6 @@ public class PlatformDetainState {
 	public void setValue1(String value1) {
 		this.value1 = value1;
 	}
-
 	
 	
 }
