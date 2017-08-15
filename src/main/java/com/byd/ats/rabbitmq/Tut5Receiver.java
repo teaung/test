@@ -678,16 +678,16 @@ public class Tut5Receiver implements ReceiverInterface{
 					{
 						Cu2AtsCiFeed ci_feed = ciFeed.getCi_feed_n().get(i);
 
-						//if(ci_feed.getFeed_type() == 37) //顾虑掉CI传过来的道岔交权
-						//{
-							//String obj = null;
-							//obj = mapper.writeValueAsString(ci_feed);
-							//template.convertAndSend("topic.serv2cli", "serv2cli.traincontrol.command_back", "{\"stationControl\":"+obj+"}");
-							//logger.info("receiveCu2AtsCiFeed: send CI data to Client Ret"+obj);
-							//obj = null;
-						//}
-						//else
-						//{
+						if(ci_feed.getFeed_type() == 37) //顾虑掉CI传过来的道岔交权
+						{
+							String obj = null;
+							obj = mapper.writeValueAsString(ci_feed);
+							template.convertAndSend("topic.serv2cli", "serv2cli.traincontrol.command_back", "{\"stationControl\":"+obj+"}");
+							logger.info("receiveCu2AtsCiFeed: send CI data to Client Ret"+obj);
+							obj = null;
+						}
+						else //道岔交权的时候ser2clijson为NULL
+						{
 							ser2clijson = cmdRepository.findOne(ci_feed.getCom_serial_num());//根据SN来查询用户名和客户端ID
 							if(ci_feed != null && ser2clijson != null)
 							{
@@ -769,15 +769,15 @@ public class Tut5Receiver implements ReceiverInterface{
 									}
 								}
 								String obj = null;
-								if(ci_feed.getFeed_type() == 37)
-								{
-									obj = mapper.writeValueAsString(ci_feed);
-									template.convertAndSend("topic.serv2cli", "serv2cli.traincontrol.command_back", "{\"stationControl\":"+obj+"}");
-								}else
-								{
+								//if(ci_feed.getFeed_type() == 37)
+								//{
+									//obj = mapper.writeValueAsString(ci_feed);
+									//template.convertAndSend("topic.serv2cli", "serv2cli.traincontrol.command_back", "{\"stationControl\":"+obj+"}");
+								//}else
+								//{
 									obj = mapper.writeValueAsString(ret);
 									template.convertAndSend("topic.serv2cli", "serv2cli.traincontrol.command_back", "{\"stationControl\":"+obj+"}");
-								}
+								//}
 								
 								logger.info("send to Client Ret"+obj);
 								cmdRepository.saveAndFlush(ser2clijson);//保存CI返回的执行状态
@@ -787,7 +787,7 @@ public class Tut5Receiver implements ReceiverInterface{
 							{
 								logger.error("receiveCu2AtsCiFeed: -------com_serial_num object is error-----------ci_feed.getCom_serial_num(): "+ci_feed.getCom_serial_num());
 							}
-						//}
+						}
 						
 					}
 				}
@@ -992,7 +992,7 @@ public class Tut5Receiver implements ReceiverInterface{
 		
 	}*/
 
-	@Scheduled(fixedDelay = 2000, initialDelay = 500)
+/*	@Scheduled(fixedDelay = 2000, initialDelay = 500)
 	public void senderPlatformStateToClient() throws IOException {
 		
 		platformDetainState = platformDetainStateService.findByKey("PlatformState");
@@ -1029,6 +1029,6 @@ public class Tut5Receiver implements ReceiverInterface{
 			template.convertAndSend("topic.serv2cli", "serv2cli.traincontrol.model",json);
 			logger.debug("test2:"+json);
 		}
-	}
+	}*/
 	
 }
