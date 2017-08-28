@@ -33,6 +33,7 @@ import javax.annotation.Resource;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.amqp.AmqpException;
 import org.springframework.amqp.core.TopicExchange;
 import org.springframework.amqp.rabbit.annotation.RabbitHandler;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
@@ -116,18 +117,18 @@ public class Tut5Receiver implements ReceiverInterface{
 	
 	private String ats2cicmdKey= "ats2cu.ci.command";
 	private String ats2cistaKey = "ats2cu.ci.ats_status";
-	public ObjectMapper mapper = new ObjectMapper();
+	//public ObjectMapper mapper = new ObjectMapper();
 	private Ats2ciMsgComm cimsg=null;
 	private HeaderInfo header_info=null;
 	private MsgHeader msg_header=null;
 	private AtsMsgCommand msgcmd =null;
-	private CLient2serJsonCommand ser2clijson = null;
+	//private CLient2serJsonCommand ser2clijson = null;
 	private CLient2serJsonCommand cli2serjson = null;
 	private Client2serCommand cmd = null;
 	private Ats2serSkipStationStatus ats2serSkipStationStatus = null;
 	private Client2serPwdCommand pwdcmd = null;
 	private AtsModeSwitch mode = null;
-	private AmqpCiFeed ciFeed = null;
+	//private AmqpCiFeed ciFeed = null;
 	private Ret2ClientResult ret = null;
 	private AtsAutoTrigger autocmd;
 	private List<PlatformState> pstateArray = new ArrayList<PlatformState>();
@@ -171,6 +172,7 @@ public class Tut5Receiver implements ReceiverInterface{
 	@RabbitListener(queues = "#{cli2ServTrainControlQueue.name}")
 	public void receive(String in){
 		logger.info("receive ....." + in);
+		ObjectMapper mapper = new ObjectMapper();
 		try {
 			mapper.configure(JsonParser.Feature.ALLOW_NUMERIC_LEADING_ZEROS, true);
 			mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
@@ -240,6 +242,9 @@ public class Tut5Receiver implements ReceiverInterface{
 	
 	public void updatePlatformDetainStatus(Ats2serSkipStationStatus ats2serSkipStationStatus)
 	{
+		ObjectMapper mapper = new ObjectMapper();
+		mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+		
 		platformDetainState = platformDetainStateService.findByKey("PlatformState");
 		String json;
 		if(platformDetainState != null)
@@ -281,6 +286,9 @@ public class Tut5Receiver implements ReceiverInterface{
 	 */
 	public void sendPwdConfirm2CU(Client2serPwdCommand pwdcmd) throws JsonProcessingException
 	{
+		ObjectMapper mapper = new ObjectMapper();
+		mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+		
 		SendPassword password = new SendPassword();
 		password.setClient_num(pwdcmd.getClient_num());
 		password.setStationcontrol_cmd_type(pwdcmd.getStationcontrol_cmd_type());
@@ -304,6 +312,8 @@ public class Tut5Receiver implements ReceiverInterface{
 	 */
 	public void sendMode2Client(String in,AtsModeSwitch mode) throws JsonProcessingException
 	{
+		ObjectMapper mapper = new ObjectMapper();
+		mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
 
 		//System.out.println("getCi_mode()...."+getCi_mode());
 		if(mode.getStationcontrol_cmd_type() == 171) //171为中心调度员请求转为中控
@@ -479,6 +489,9 @@ public class Tut5Receiver implements ReceiverInterface{
 	 */
 	public void send2CI(Client2serCommand cmd) throws JsonProcessingException {
 
+		ObjectMapper mapper = new ObjectMapper();
+		mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+		
 	    cimsg = new Ats2ciMsgComm();
 		header_info = new HeaderInfo();
 		msg_header = new MsgHeader();
@@ -523,6 +536,8 @@ public class Tut5Receiver implements ReceiverInterface{
 	 */
 	public void send2Aod(Client2serCommand cmd)
 	{
+		ObjectMapper mapper = new ObjectMapper();
+		
 		if(cmd.getStationcontrol_cmd_type() ==102 || cmd.getStationcontrol_cmd_type() == 103)
 		{
 			List<SkipStationState> liststate = skipStationStateService.findAll();
@@ -666,9 +681,15 @@ public class Tut5Receiver implements ReceiverInterface{
 	public void receiveCu2AtsCiFeed(String in)
 	{
 		logger.info("receiveCu2AtsCiFeed(): "+in);
-		mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+		
+		Ret2ClientResult ret = null;
+		ObjectMapper omap = new ObjectMapper();
+		AmqpCiFeed ciFeed = null;
+		CLient2serJsonCommand ser2clijson = null;
+		
+		omap.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
 		try {
-			ciFeed = mapper.readValue(in, AmqpCiFeed.class);
+			ciFeed = omap.readValue(in, AmqpCiFeed.class);
 			if(ciFeed != null)
 			{
 				int feed_num = ciFeed.getFeed_num();
@@ -681,7 +702,7 @@ public class Tut5Receiver implements ReceiverInterface{
 						if(ci_feed.getFeed_type() == 37) //顾虑掉CI传过来的道岔交权
 						{
 							String obj = null;
-							obj = mapper.writeValueAsString(ci_feed);
+							obj = omap.writeValueAsString(ci_feed);
 							template.convertAndSend("topic.serv2cli", "serv2cli.traincontrol.command_back", "{\"stationControl\":"+obj+"}");
 							logger.info("receiveCu2AtsCiFeed: send CI data to Client Ret"+obj);
 							obj = null;
@@ -689,6 +710,7 @@ public class Tut5Receiver implements ReceiverInterface{
 						else //道岔交权的时候ser2clijson为NULL
 						{
 							ser2clijson = cmdRepository.findOne(ci_feed.getCom_serial_num());//根据SN来查询用户名和客户端ID
+							
 							if(ci_feed != null && ser2clijson != null)
 							{
 								ser2clijson.setRet(ci_feed.getFeed_status());
@@ -702,15 +724,17 @@ public class Tut5Receiver implements ReceiverInterface{
 								ret.setCountdownTime(ci_feed.getFeed_time());
 								if(ci_feed.getFeed_type() == 28 || ci_feed.getFeed_type() == 29)//更新扣车状态
 								{
-									Client2serCommand tempcmd = mapper.readValue(ser2clijson.getJson(),Client2serCommand.class);
+									Client2serCommand tempcmd = omap.readValue(ser2clijson.getJson(),Client2serCommand.class);
 									if(ci_feed.getFeed_status() == 1 && tempcmd != null) //等于3表示扣车成功
 									{
 										platformDetainState = platformDetainStateService.findByKey("PlatformState");
 										String value = ""; 
-										if(platformDetainState != null )
+										if(platformDetainState != null)
 										{
+											if (platformDetainState.getValue1() != null) {
 											//List<PlatformState> tempArray;
-											pstateArray = mapper.readValue(platformDetainState.getValue1(), new TypeReference<List<PlatformState>>() {});
+											pstateArray = omap.readValue(platformDetainState.getValue1(), new TypeReference<List<PlatformState>>() {});
+											}
 											pstateArray.get(tempcmd.getCmd_parameter().get(0)-1).setClientnum(tempcmd.getClient_num());//根据站台ID来获取数组下标
 											pstateArray.get(tempcmd.getCmd_parameter().get(0)-1).setId(tempcmd.getCmd_parameter().get(0));
 											if(ci_feed.getFeed_type() == 28)
@@ -722,7 +746,7 @@ public class Tut5Receiver implements ReceiverInterface{
 												pstateArray.get(tempcmd.getCmd_parameter().get(0)-1).setState(0); //取消扣车状态
 											}
 											pstateArray.get(tempcmd.getCmd_parameter().get(0)-1).setUsername(tempcmd.getUser_name());
-											value = mapper.writeValueAsString(pstateArray);
+											value = omap.writeValueAsString(pstateArray);
 											platformDetainState.setValue1(value);
 											platformDetainStateService.save(platformDetainState);
 											logger.info("receiveCu2AtsCiFeed: ----- save feed_status is 0x01 and type is 28 to Db -----");
@@ -734,7 +758,7 @@ public class Tut5Receiver implements ReceiverInterface{
 											pstateArray.get(tempcmd.getCmd_parameter().get(0)-1).setClientnum(tempcmd.getClient_num());
 											pstateArray.get(tempcmd.getCmd_parameter().get(0)-1).setState(1);
 											pstateArray.get(tempcmd.getCmd_parameter().get(0)-1).setUsername(tempcmd.getUser_name());
-											value = mapper.writeValueAsString(pstateArray);
+											value = omap.writeValueAsString(pstateArray);
 											platformDetainState.setKey1("PlatformState");
 											platformDetainState.setValue1(value);
 											platformDetainStateService.save(platformDetainState);
@@ -775,8 +799,13 @@ public class Tut5Receiver implements ReceiverInterface{
 									//template.convertAndSend("topic.serv2cli", "serv2cli.traincontrol.command_back", "{\"stationControl\":"+obj+"}");
 								//}else
 								//{
-									obj = mapper.writeValueAsString(ret);
+									if (ser2clijson.getStatus() == 4) { // 该命令已经反馈给客户端
+										continue;
+									}
+									obj = omap.writeValueAsString(ret);
 									template.convertAndSend("topic.serv2cli", "serv2cli.traincontrol.command_back", "{\"stationControl\":"+obj+"}");
+									
+									ser2clijson.setStatus(4);// 客户端的命令执行流程完结！
 								//}
 								
 								logger.info("send to Client Ret"+obj);
@@ -801,7 +830,9 @@ public class Tut5Receiver implements ReceiverInterface{
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
-		}finally {
+		} catch (AmqpException e) {
+			e.printStackTrace();
+		} finally {
 			ciFeed = null;
 			ser2clijson = null;
 			ret = null;
@@ -837,6 +868,9 @@ public class Tut5Receiver implements ReceiverInterface{
 	@RabbitListener(queues = "#{cu2atsModeSwitchQueue.name}")
 	public void receiveCiModeStatus(String in)
 	{
+		ObjectMapper mapper = new ObjectMapper();
+		mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+		
 		//无法判断CI是否第一次上电.
 		//System.out.println("in....."+in); //85/204---中心控制/非常站控
 		try {
@@ -900,6 +934,9 @@ public class Tut5Receiver implements ReceiverInterface{
 	@RabbitListener(queues = "#{cu2atsCiInterruptWarningQueue.name}")
 	public void receiveCiInterruptWarning(String in)
 	{
+		ObjectMapper mapper = new ObjectMapper();
+		mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+		
 		try {
 			Map<String,Object> tempmap = mapper.readValue(in, Map.class);
 			if(tempmap.size()>0 && tempmap.containsKey("cu_ci_rupt"))
