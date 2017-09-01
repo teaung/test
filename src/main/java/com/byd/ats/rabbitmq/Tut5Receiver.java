@@ -510,8 +510,11 @@ public class Tut5Receiver implements ReceiverInterface{
 		cli2serjson.setJson(mapper.writeValueAsString(cmd));
 		cli2serjson.setUsername(cmd.getUser_name());
 		cli2serjson.setClient_num(cmd.getClient_num());
+		cli2serjson.setCmd(cmd.getStationcontrol_cmd_type());
+		cli2serjson.setMagic((short) (1+Math.random()*65535));
 		cmdRepository.save(cli2serjson);
-		msgcmd.setCom_serial_num(cli2serjson.getId());
+		//msgcmd.setCom_serial_num(cli2serjson.getId());
+		msgcmd.setCom_serial_num(cli2serjson.getMagic());
 		
 		cimsg.setHeader_info(header_info);
 		cimsg.setMsg_header(msg_header);
@@ -709,10 +712,14 @@ public class Tut5Receiver implements ReceiverInterface{
 						}
 						else //道岔交权的时候ser2clijson为NULL
 						{
-							ser2clijson = cmdRepository.findOne(ci_feed.getCom_serial_num());//根据SN来查询用户名和客户端ID
+							//ser2clijson = cmdRepository.findOne(ci_feed.getCom_serial_num());//根据SN来查询用户名和客户端ID
+							ser2clijson = cmdRepository.findByMagicAndCmd((short)ci_feed.getCom_serial_num(), ci_feed.getFeed_type());//根据魔数和命令号来查询用户名和客户端ID
+							if (ser2clijson == null) {
+								continue;
+							}
 							
-							if(ci_feed != null && ser2clijson != null)
-							{
+							//if(ci_feed != null && ser2clijson != null)
+							//{
 								ser2clijson.setRet(ci_feed.getFeed_status());
 								//logger.info("ser2clijson ....." + ser2clijson.getJson());
 								ret = new Ret2ClientResult();
@@ -771,7 +778,7 @@ public class Tut5Receiver implements ReceiverInterface{
 									tempcmd = null;
 								}
 
-								if(ci_feed.getFeed_type() == 35)//设置控制模式 
+								else if(ci_feed.getFeed_type() == 35)//设置控制模式
 								{
 									List<CiMode> listmod = ciModeService.findAll();
 									CiMode cimode = null;
@@ -805,17 +812,29 @@ public class Tut5Receiver implements ReceiverInterface{
 									obj = omap.writeValueAsString(ret);
 									template.convertAndSend("topic.serv2cli", "serv2cli.traincontrol.command_back", "{\"stationControl\":"+obj+"}");
 									
-									ser2clijson.setStatus(4);// 客户端的命令执行流程完结！
+									/**
+									| 12 | 0x12 | 进路ID | 人解 |
+									| 13 | 0x13 | 区段ID | 区段故障解锁 |
+									| 15 | 0x15 | 进路ID | 引导进路办理 |
+									*/
+									if (ci_feed.getFeed_type() == 12 || ci_feed.getFeed_type() == 13 || ci_feed.getFeed_type() == 15) {
+										if (ci_feed.getFeed_status() != 0xff) { // 如果命令反馈状态不为等待状态（0xff），即此命令执行流程结束
+											ser2clijson.setStatus(4);// 客户端的命令执行流程完结！
+										}
+									}
+									else {
+										ser2clijson.setStatus(4);// 客户端的命令执行流程完结！
+									}
 								//}
 								
 								logger.info("send to Client Ret"+obj);
 								cmdRepository.saveAndFlush(ser2clijson);//保存CI返回的执行状态
 								obj = null;
-							}
+							/*}
 							else
 							{
 								logger.error("receiveCu2AtsCiFeed: -------com_serial_num object is error-----------ci_feed.getCom_serial_num(): "+ci_feed.getCom_serial_num());
-							}
+							}*/
 						}
 						
 					}
