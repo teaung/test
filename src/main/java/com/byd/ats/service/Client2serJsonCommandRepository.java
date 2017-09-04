@@ -7,6 +7,6 @@ import com.byd.ats.entity.CLient2serJsonCommand;
 
 public interface Client2serJsonCommandRepository   extends JpaRepository<CLient2serJsonCommand,Long>{
 
-	CLient2serJsonCommand findByMagicAndCmd(short com_serial_num, int cmd);
+	CLient2serJsonCommand findByMagicAndCmd(int magic, int cmd);
 
 }

@@ -511,7 +511,7 @@ public class Tut5Receiver implements ReceiverInterface{
 		cli2serjson.setUsername(cmd.getUser_name());
 		cli2serjson.setClient_num(cmd.getClient_num());
 		cli2serjson.setCmd(cmd.getStationcontrol_cmd_type());
-		cli2serjson.setMagic((short) (1+Math.random()*65535));
+		cli2serjson.setMagic((int) (1+Math.random()*Short.MAX_VALUE*2)); //65534(0xFFFE): Short.MAX_VALUE=32767, Short.MIN_VALUE=-32768
 		cmdRepository.save(cli2serjson);
 		//msgcmd.setCom_serial_num(cli2serjson.getId());
 		msgcmd.setCom_serial_num(cli2serjson.getMagic());
@@ -713,7 +713,7 @@ public class Tut5Receiver implements ReceiverInterface{
 						else //道岔交权的时候ser2clijson为NULL
 						{
 							//ser2clijson = cmdRepository.findOne(ci_feed.getCom_serial_num());//根据SN来查询用户名和客户端ID
-							ser2clijson = cmdRepository.findByMagicAndCmd((short)ci_feed.getCom_serial_num(), ci_feed.getFeed_type());//根据魔数和命令号来查询用户名和客户端ID
+							ser2clijson = cmdRepository.findByMagicAndCmd((int)ci_feed.getCom_serial_num(), ci_feed.getFeed_type());//根据魔数和命令号来查询用户名和客户端ID
 							if (ser2clijson == null) {
 								continue;
 							}
@@ -806,9 +806,11 @@ public class Tut5Receiver implements ReceiverInterface{
 									//template.convertAndSend("topic.serv2cli", "serv2cli.traincontrol.command_back", "{\"stationControl\":"+obj+"}");
 								//}else
 								//{
-									if (ser2clijson.getStatus() == 4) { // 该命令已经反馈给客户端
+									/*if (ser2clijson.getStatus() == 4) { // 该命令已经反馈给客户端
 										continue;
-									}
+									}*/
+								
+								// 将有效的CI命令反馈信息转发给客户端
 									obj = omap.writeValueAsString(ret);
 									template.convertAndSend("topic.serv2cli", "serv2cli.traincontrol.command_back", "{\"stationControl\":"+obj+"}");
 									
@@ -817,14 +819,14 @@ public class Tut5Receiver implements ReceiverInterface{
 									| 13 | 0x13 | 区段ID | 区段故障解锁 |
 									| 15 | 0x15 | 进路ID | 引导进路办理 |
 									*/
-									if (ci_feed.getFeed_type() == 12 || ci_feed.getFeed_type() == 13 || ci_feed.getFeed_type() == 15) {
+									/*if (ci_feed.getFeed_type() == 12 || ci_feed.getFeed_type() == 13 || ci_feed.getFeed_type() == 15) {
 										if (ci_feed.getFeed_status() != 0xff) { // 如果命令反馈状态不为等待状态（0xff），即此命令执行流程结束
 											ser2clijson.setStatus(4);// 客户端的命令执行流程完结！
 										}
 									}
 									else {
 										ser2clijson.setStatus(4);// 客户端的命令执行流程完结！
-									}
+									}*/
 								//}
 								
 								logger.info("send to Client Ret"+obj);

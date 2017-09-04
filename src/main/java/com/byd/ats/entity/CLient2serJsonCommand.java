@@ -23,7 +23,7 @@ public class CLient2serJsonCommand {
 	private int ret;
 	private Date createtime;
 	private int status = 0; // 0:无效; 1:客户端发送命令至运行控制模块；2：运行控制模块下发命令给CU；3：收到CU的命令反馈；4：将命令反馈发送给客户端
-	private short magic; // 魔数，用于CI命令反馈信息的匹配
+	private int magic; // 魔数(1~65535)，用于CI命令反馈信息的匹配。由于CI只处理2个字节，需将值限定在1～65535范围内，而Java的short类型的值范围-32768～32767，故需改为int，不然json转换会报错。
 	private int cmd;     // 命令号
 	
 	public long getId() {
@@ -68,10 +68,10 @@ public class CLient2serJsonCommand {
 	public void setStatus(int status) {
 		this.status = status;
 	}
-	public short getMagic() {
+	public int getMagic() {
 		return magic;
 	}
-	public void setMagic(short magic) {
+	public void setMagic(int magic) {
 		this.magic = magic;
 	}
 	public int getCmd() {
