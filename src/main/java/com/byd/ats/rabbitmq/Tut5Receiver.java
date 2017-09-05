@@ -683,7 +683,7 @@ public class Tut5Receiver implements ReceiverInterface{
 	@RabbitListener(queues = "#{cu2atsCiFeedQueue.name}")
 	public void receiveCu2AtsCiFeed(String in)
 	{
-		logger.info("receiveCu2AtsCiFeed(): "+in);
+		logger.info("[CIfeed] receiveCu2AtsCiFeed(): "+in);
 		
 		Ret2ClientResult ret = null;
 		ObjectMapper omap = new ObjectMapper();
@@ -713,14 +713,18 @@ public class Tut5Receiver implements ReceiverInterface{
 						else //道岔交权的时候ser2clijson为NULL
 						{
 							//ser2clijson = cmdRepository.findOne(ci_feed.getCom_serial_num());//根据SN来查询用户名和客户端ID
+							// 对命令反馈进行有效性判断
 							ser2clijson = cmdRepository.findByMagicAndCmd((int)ci_feed.getCom_serial_num(), ci_feed.getFeed_type());//根据魔数和命令号来查询用户名和客户端ID
 							if (ser2clijson == null) {
+								logger.info("[CIfeed] Can't find this feed's command ({}, {}), so discard!", ci_feed.getFeed_type(), ci_feed.getCom_serial_num());
 								continue;
 							}
 							
+							ser2clijson.setCreatetime(new Date()); // 更新命令反馈的时间信息
+
 							//if(ci_feed != null && ser2clijson != null)
 							//{
-								ser2clijson.setRet(ci_feed.getFeed_status());
+								//ser2clijson.setRet(ci_feed.getFeed_status());
 								//logger.info("ser2clijson ....." + ser2clijson.getJson());
 								ret = new Ret2ClientResult();
 								ret.setClient_num(ser2clijson.getClient_num());
@@ -799,7 +803,7 @@ public class Tut5Receiver implements ReceiverInterface{
 											
 									}
 								}
-								String obj = null;
+								//String obj = null;
 								//if(ci_feed.getFeed_type() == 37)
 								//{
 									//obj = mapper.writeValueAsString(ci_feed);
@@ -810,10 +814,18 @@ public class Tut5Receiver implements ReceiverInterface{
 										continue;
 									}*/
 								
+								if (ser2clijson.getRet() == ci_feed.getFeed_status()) {
+									logger.info("[CIfeed] feed_status {} is same as the last feed_status {}, so discard!", ci_feed.getFeed_status(), ser2clijson.getRet());
+									continue;
+								}
+								// 命令反馈的状态值不同，则更新数据库表，并转发给客户端
+								ser2clijson.setRet(ci_feed.getFeed_status());
 								// 将有效的CI命令反馈信息转发给客户端
-									obj = omap.writeValueAsString(ret);
-									template.convertAndSend("topic.serv2cli", "serv2cli.traincontrol.command_back", "{\"stationControl\":"+obj+"}");
-									
+								String obj = null;
+								obj = omap.writeValueAsString(ret);
+								template.convertAndSend("topic.serv2cli", "serv2cli.traincontrol.command_back", "{\"stationControl\":"+obj+"}");
+								logger.info("[CIfeed] feed -> Client: " + obj);
+								
 									/**
 									| 12 | 0x12 | 进路ID | 人解 |
 									| 13 | 0x13 | 区段ID | 区段故障解锁 |
@@ -829,7 +841,7 @@ public class Tut5Receiver implements ReceiverInterface{
 									}*/
 								//}
 								
-								logger.info("send to Client Ret"+obj);
+								
 								cmdRepository.saveAndFlush(ser2clijson);//保存CI返回的执行状态
 								obj = null;
 							/*}
