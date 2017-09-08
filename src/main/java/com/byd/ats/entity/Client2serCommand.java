@@ -19,6 +19,8 @@ public class Client2serCommand {
 	@JsonProperty
 	private String user_name;
 	
+	private int workstation;
+	
 	@JsonIgnore
 	public String getCmd_class() {
 		return cmd_class;
@@ -67,6 +69,12 @@ public class Client2serCommand {
 	@JsonIgnore
 	public void setUser_name(String user_name) {
 		this.user_name = user_name;
+	}
+	public int getWorkstation() {
+		return workstation;
+	}
+	public void setWorkstation(int workstation) {
+		this.workstation = workstation;
 	}
 	
 }

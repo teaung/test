@@ -15,7 +15,7 @@ public class Cu2AtsCiFeed {
 */
 	private int feed_type;//反馈状态类型
 	private int feed_status;//执行状态
-	private int feed_id;//进路ID/区段ID/道岔ID
+	private long feed_id;//进路ID/区段ID/道岔ID
 	private int feed_time;//计时秒数
 	private long com_serial_num; //序列号
 	public int getFeed_type() {
@@ -30,10 +30,10 @@ public class Cu2AtsCiFeed {
 	public void setFeed_status(int feed_status) {
 		this.feed_status = feed_status;
 	}
-	public int getFeed_id() {
+	public long getFeed_id() {
 		return feed_id;
 	}
-	public void setFeed_id(int feed_id) {
+	public void setFeed_id(long feed_id) {
 		this.feed_id = feed_id;
 	}
 	public int getFeed_time() {

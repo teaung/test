@@ -14,10 +14,18 @@ public class Ret2ClientResult {
 	@JsonProperty
 	private int resoult;
 	@JsonProperty
-	private int cmd_parameter;//反馈参数，即相关ID
+	private long cmd_parameter;//反馈参数，即相关ID
 	@JsonProperty
 	private int countdownTime;//倒计时秒数
 	
+	private int workstation;
+	
+	public int getWorkstation() {
+		return workstation;
+	}
+	public void setWorkstation(int workstation) {
+		this.workstation = workstation;
+	}
 	public int getClient_num() {
 		return client_num;
 	}
@@ -43,10 +51,11 @@ public class Ret2ClientResult {
 	public void setResoult(int resoult) {
 		this.resoult = resoult;
 	}
-	public int getCmd_parameter() {
+	
+	public long getCmd_parameter() {
 		return cmd_parameter;
 	}
-	public void setCmd_parameter(int cmd_parameter) {
+	public void setCmd_parameter(long cmd_parameter) {
 		this.cmd_parameter = cmd_parameter;
 	}
 	public int getCountdownTime() {

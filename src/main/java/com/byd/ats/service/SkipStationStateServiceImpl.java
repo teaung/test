@@ -17,13 +17,13 @@ public class SkipStationStateServiceImpl implements SkipStationStateService{
 	@Autowired
 	private SkipStationStateRepository skipStationStateRepository;
 	
-	@Override
+/*	@Override
 	@Cacheable
 	public SkipStationState findByKey(String key) {
 		// TODO Auto-generated method stub
 		return skipStationStateRepository.findByKey1(key);
 	}
-
+*/
 	@Override
 	@CacheEvict(allEntries=true)
 	public void save(SkipStationState state) {
@@ -36,6 +36,12 @@ public class SkipStationStateServiceImpl implements SkipStationStateService{
 	public List<SkipStationState> findAll() {
 		// TODO Auto-generated method stub
 		return skipStationStateRepository.findAll();
+	}
+
+	@Override
+	public SkipStationState findByPlatformId(int stationId) {
+		// TODO Auto-generated method stub
+		return skipStationStateRepository.findByPlatformId(stationId);
 	}
 
 }

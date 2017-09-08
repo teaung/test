@@ -38,6 +38,7 @@ import org.springframework.amqp.core.TopicExchange;
 import org.springframework.amqp.rabbit.annotation.RabbitHandler;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -62,6 +63,7 @@ import com.byd.ats.entity.AtsAutoTrigger;
 import com.byd.ats.entity.AtsModeSwitch;
 import com.byd.ats.entity.AtsMsgCommand;
 import com.byd.ats.entity.CLient2serJsonCommand;
+import com.byd.ats.entity.CLient2serJsonCommandHistory;
 import com.byd.ats.entity.CiMode;
 import com.byd.ats.entity.Client2cuPasswordConfirm;
 import com.byd.ats.entity.Client2serCommand;
@@ -79,9 +81,11 @@ import com.byd.ats.entity.SendPassword;
 import com.byd.ats.entity.SkipStationState;
 import com.byd.ats.entity.TraintraceInfo;
 import com.byd.ats.service.CiModeService;
+import com.byd.ats.service.Client2serJsonCommandHistoryRepository;
 import com.byd.ats.service.Client2serJsonCommandRepository;
 import com.byd.ats.service.PlatformDetainStateService;
 import com.byd.ats.service.SkipStationStateService;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -105,6 +109,8 @@ public class Tut5Receiver implements ReceiverInterface{
 	@Autowired
 	private Client2serJsonCommandRepository cmdRepository;
 	@Autowired
+	private Client2serJsonCommandHistoryRepository cmdHistoryRepository;
+	@Autowired
 	private PlatformDetainStateService platformDetainStateService;
 	@Autowired
 	private CiModeService ciModeService;
@@ -123,7 +129,7 @@ public class Tut5Receiver implements ReceiverInterface{
 	private MsgHeader msg_header=null;
 	private AtsMsgCommand msgcmd =null;
 	//private CLient2serJsonCommand ser2clijson = null;
-	private CLient2serJsonCommand cli2serjson = null;
+	//private CLient2serJsonCommand cli2serjson = null;
 	private Client2serCommand cmd = null;
 	private Ats2serSkipStationStatus ats2serSkipStationStatus = null;
 	private Client2serPwdCommand pwdcmd = null;
@@ -133,7 +139,7 @@ public class Tut5Receiver implements ReceiverInterface{
 	private AtsAutoTrigger autocmd;
 	private List<PlatformState> pstateArray = new ArrayList<PlatformState>();
 	private List<PlatformState> skipStationArray = new ArrayList<PlatformState>();
-	private PlatformDetainState platformDetainState = null;
+	//private PlatformDetainState platformDetainState = null;
 	private SkipStationState skipStationState = null;
 	private int ci_mode = -1;
 	private Lock lock = new ReentrantLock();  // 注意这个地方:lock被声明为成员变量
@@ -194,7 +200,9 @@ public class Tut5Receiver implements ReceiverInterface{
 					pwdcmd = mapper.readValue(in, Client2serPwdCommand.class);
 					if(pwdcmd != null)
 					{
-						sendPwdConfirm2CU(pwdcmd);
+						CLient2serJsonCommandHistory commandHistory = new CLient2serJsonCommandHistory();
+						commandHistory.setrClientTime(new Date());
+						sendPwdConfirm2CU(pwdcmd, commandHistory);
 					}
 				}
 				
@@ -203,7 +211,9 @@ public class Tut5Receiver implements ReceiverInterface{
 					mode = mapper.readValue(in, AtsModeSwitch.class);
 					if(mode != null)
 					{
-						sendMode2Client(in,mode);
+						CLient2serJsonCommandHistory commandHistory = new CLient2serJsonCommandHistory();
+						commandHistory.setrClientTime(new Date());
+						sendMode2Client(in,mode,commandHistory);
 					}
 				}
 				if(tempmap.get("cmd_class").toString().equals("ATSsev"))//转发给自动进路办理模块
@@ -218,7 +228,9 @@ public class Tut5Receiver implements ReceiverInterface{
 					cmd = mapper.readValue(in, Client2serCommand.class);
 					if(cmd != null)
 					{
-						send2Aod(cmd);
+						CLient2serJsonCommandHistory commandHistory = new CLient2serJsonCommandHistory();
+						commandHistory.setrClientTime(new Date());
+						send2Aod(cmd,commandHistory);
 					}
 				}
 				if(tempmap.get("cmd_class").toString().equals("abnormal_ATSsev"))
@@ -244,39 +256,38 @@ public class Tut5Receiver implements ReceiverInterface{
 	{
 		ObjectMapper mapper = new ObjectMapper();
 		mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-		
-		platformDetainState = platformDetainStateService.findByKey("PlatformState");
 		String json;
-		if(platformDetainState != null)
-		{
-			try {
-				//System.out.println("debug........."+ats2serSkipStationStatus.getPlatformState());
-				json = mapper.writeValueAsString(ats2serSkipStationStatus.getPlatformState());
-				platformDetainState.setValue1(json);
-				platformDetainStateService.save(platformDetainState);
-				logger.info("send to client updateSkipStationStatus exce ok .... ");
-			} catch (JsonProcessingException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
+		
+		try{
+			List<PlatformState> platformStateList = ats2serSkipStationStatus.getPlatformState();
+			for(PlatformState platformState:platformStateList){
+				SkipStationState skipStationState = skipStationStateService.findByPlatformId(platformState.getId());
+				
+				if(skipStationState != null){
+					//System.out.println("debug........."+ats2serSkipStationStatus.getPlatformState());
+					skipStationState.setClientnum(platformState.getClientnum());
+					skipStationState.setUsername(platformState.getUsername());
+					skipStationState.setDetainStatus((short) platformState.getState());
+					skipStationState.setWorkstation(platformState.getWorkstation());
+					skipStationStateService.save(skipStationState);
+					logger.info("send to client updateSkipStationStatus exce ok .... ");
+				}
+				else{
+					skipStationState = new SkipStationState();
+					skipStationState.setClientnum(platformState.getClientnum());
+					skipStationState.setUsername(platformState.getUsername());
+					skipStationState.setPlatformId(platformState.getId());
+					skipStationState.setDetainStatus((short) platformState.getState());
+					skipStationState.setWorkstation(platformState.getWorkstation());
+					skipStationStateService.save(skipStationState);
+					logger.info("send to client updateSkipStationStatus exce ok .... ");
+				}
+				
 			}
+		}catch (Exception e) {
+			// TODO: handle exception
+			logger.error("send to client updateSkipStationStatus exce error .... ");
 		}
-		if(platformDetainState == null)
-		{
-			//System.out.println("debug.........");
-			platformDetainState = new PlatformDetainState();
-			platformDetainState.setKey1("PlatformState");
-			try {
-				json = mapper.writeValueAsString(ats2serSkipStationStatus.getPlatformState());
-				platformDetainState.setValue1(json);
-				platformDetainStateService.save(platformDetainState);
-				logger.info("send to client updateSkipStationStatus exce ok .... ");
-			} catch (JsonProcessingException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-			
-		}
-		platformDetainState = null;
 		json = null;
 	}
 	/**
@@ -284,10 +295,20 @@ public class Tut5Receiver implements ReceiverInterface{
 	 * @param pwdcmd
 	 * @throws JsonProcessingException
 	 */
-	public void sendPwdConfirm2CU(Client2serPwdCommand pwdcmd) throws JsonProcessingException
+	public void sendPwdConfirm2CU(Client2serPwdCommand pwdcmd, CLient2serJsonCommandHistory commandHistory) throws JsonProcessingException
 	{
 		ObjectMapper mapper = new ObjectMapper();
 		mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+		
+		//-------------myAdd---------
+		commandHistory.setClientNum(pwdcmd.getClient_num());
+		commandHistory.setCmd(pwdcmd.getStationcontrol_cmd_type());
+		commandHistory.setCmdClass(1);
+		commandHistory.setForCmd(pwdcmd.getFor_cmd());
+		commandHistory.setUsername(pwdcmd.getUser_name());
+		commandHistory.setPassword(pwdcmd.getPassword());
+		commandHistory.setsCuTime(new Date());
+		cmdHistoryRepository.save(commandHistory);
 		
 		SendPassword password = new SendPassword();
 		password.setClient_num(pwdcmd.getClient_num());
@@ -310,17 +331,33 @@ public class Tut5Receiver implements ReceiverInterface{
 	 * @param contrcmd
 	 * @throws JsonProcessingException
 	 */
-	public void sendMode2Client(String in,AtsModeSwitch mode) throws JsonProcessingException
+	public void sendMode2Client(String in,AtsModeSwitch mode, CLient2serJsonCommandHistory commandHistory) throws JsonProcessingException
 	{
 		ObjectMapper mapper = new ObjectMapper();
 		mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-
+		
+		//-------myAdd-------
+		commandHistory.setClientNum(mode.getClient_num());
+		commandHistory.setCmd(mode.getStationcontrol_cmd_type());
+		commandHistory.setCmdClass(0);
+		commandHistory.setUsername(mode.getUser_name());
+		commandHistory.setCiNum(mode.getCi_num());
+		commandHistory.setCurrentMode(mode.getCurrent_mode());
+		commandHistory.setModifiedMode(mode.getModified_mode());
+		commandHistory.setWay(mode.getWay());
+		commandHistory.setSrcClientNum(mode.getSrc_client_num());
+		commandHistory.setMagic((int) (1+Math.random()*Short.MIN_VALUE*2));
+		//cmdHistoryRepository.save(commandHistory);
+		
 		//System.out.println("getCi_mode()...."+getCi_mode());
 		if(mode.getStationcontrol_cmd_type() == 171) //171为中心调度员请求转为中控
 		{
 			String obj = "{\"stationControl\":"+in+"}";
 			template.convertAndSend("topic.serv2cli", "serv2cli.traincontrol.model", obj);
 			logger.info("Sent StationControl to [ats-client]: "+mode.getStationcontrol_cmd_type() +  obj + " ");
+		
+			commandHistory.setsClientTime(new Date());
+			cmdHistoryRepository.save(commandHistory);
 		}
 		if(mode.getStationcontrol_cmd_type() == 172)
 		{
@@ -329,6 +366,9 @@ public class Tut5Receiver implements ReceiverInterface{
 				String obj = "{\"stationControl\":"+in+"}";
 				template.convertAndSend("topic.serv2cli", "serv2cli.traincontrol.model", obj);
 				logger.info("Sent StationControl to [ats-client]: "+mode.getStationcontrol_cmd_type() +  obj + " ");
+			
+				commandHistory.setsClientTime(new Date());
+				cmdHistoryRepository.save(commandHistory);
 			}
 			if(mode.getCurrent_mode() != mode.getModified_mode() && mode.getModified_mode() ==1)
 			{
@@ -348,6 +388,8 @@ public class Tut5Receiver implements ReceiverInterface{
 					template.convertAndSend("topic.serv2cli", "serv2cli.traincontrol.model", obj);
 					logger.info("Sent StationControl to [ats-client]: "+mode.getStationcontrol_cmd_type() +  obj + " ");
 
+					commandHistory.setsClientTime(new Date());
+					cmdHistoryRepository.save(commandHistory);
 				}
 				if(getCi_mode() == 204)
 				{
@@ -362,6 +404,9 @@ public class Tut5Receiver implements ReceiverInterface{
 					String obj = "{\"stationControl\":"+mapper.writeValueAsString(mode)+"}";
 					template.convertAndSend("topic.serv2cli", "serv2cli.traincontrol.model", obj);
 					logger.info("Sent StationControl to [ats-client]: "+mode.getStationcontrol_cmd_type() +  obj + " ");
+				
+					commandHistory.setsClientTime(new Date());
+					cmdHistoryRepository.save(commandHistory);
 				}
 			}
 		}
@@ -372,6 +417,9 @@ public class Tut5Receiver implements ReceiverInterface{
 				String obj = "{\"stationControl\":"+in+"}";
 				template.convertAndSend("topic.serv2cli", "serv2cli.traincontrol.model", obj);
 				logger.info("Sent StationControl to [ats-client]: "+mode.getStationcontrol_cmd_type() +  obj + " ");
+				
+				commandHistory.setsClientTime(new Date());
+				cmdHistoryRepository.save(commandHistory);
 			}
 			if(mode.getWay() == 1)//way==1代表车站抢权
 			{
@@ -389,6 +437,9 @@ public class Tut5Receiver implements ReceiverInterface{
 					String obj = "{\"stationControl\":"+in+"}";
 					template.convertAndSend("topic.serv2cli", "serv2cli.traincontrol.model", obj);
 					logger.info("Sent StationControl to [ats-client]: "+mode.getStationcontrol_cmd_type() +  obj + " ");
+				
+					commandHistory.setsClientTime(new Date());
+					cmdHistoryRepository.save(commandHistory);
 				}
 				if(getCi_mode() == 204)
 				{
@@ -403,6 +454,9 @@ public class Tut5Receiver implements ReceiverInterface{
 					String obj = "{\"stationControl\":"+mapper.writeValueAsString(mode)+"}";
 					template.convertAndSend("topic.serv2cli", "serv2cli.traincontrol.model", obj);
 					logger.info("Sent StationControl to [ats-client]: "+mode.getStationcontrol_cmd_type() +  obj + " ");
+				
+					commandHistory.setsClientTime(new Date());
+					cmdHistoryRepository.save(commandHistory);
 				}
 			}
 		}
@@ -413,6 +467,9 @@ public class Tut5Receiver implements ReceiverInterface{
 				String obj = "{\"stationControl\":"+in+"}";
 				template.convertAndSend("topic.serv2cli", "serv2cli.traincontrol.model", obj);
 				logger.info("Sent StationControl to [ats-client] " +  obj + " ");
+			
+				commandHistory.setsClientTime(new Date());
+				cmdHistoryRepository.save(commandHistory);
 			}
 			//非常站控转中控
 			if(mode.getCurrent_mode() != mode.getModified_mode() && mode.getCurrent_mode() == 2 && mode.getModified_mode() == 0)
@@ -428,6 +485,10 @@ public class Tut5Receiver implements ReceiverInterface{
 				modecmd.setUser_name(mode.getUser_name());
 				send2CI(modecmd);
 				modecmd = null;
+				
+				//commandHistory.setCmdClass(1);
+				//commandHistory.setsCuTime(new Date());
+				//cmdHistoryRepository.save(commandHistory);
 			}
 			//非常站控转站控
 			if(mode.getCurrent_mode() != mode.getModified_mode() && mode.getCurrent_mode() ==2 && mode.getModified_mode() == 1)
@@ -443,6 +504,10 @@ public class Tut5Receiver implements ReceiverInterface{
 				modecmd.setUser_name(mode.getUser_name());
 				send2CI(modecmd);
 				modecmd = null;
+				
+				//commandHistory.setCmdClass(1);
+				//commandHistory.setsCuTime(new Date());
+				//cmdHistoryRepository.save(commandHistory);
 			}
 			//从站控转为中控
 			if(mode.getCurrent_mode() != mode.getModified_mode() && mode.getCurrent_mode() ==1 && mode.getModified_mode() == 0)
@@ -461,6 +526,9 @@ public class Tut5Receiver implements ReceiverInterface{
 					String obj = "{\"stationControl\":"+in+"}";
 					template.convertAndSend("topic.serv2cli", "serv2cli.traincontrol.model", obj);
 					logger.info("Sent StationControl to [ats-client]: "+mode.getStationcontrol_cmd_type() +  obj + " ");
+				
+					commandHistory.setsClientTime(new Date());
+					cmdHistoryRepository.save(commandHistory);
 				}
 				if(getCi_mode() == 204) //非常站控
 				{
@@ -475,6 +543,9 @@ public class Tut5Receiver implements ReceiverInterface{
 					String obj = "{\"stationControl\":"+mapper.writeValueAsString(mode)+"}";
 					template.convertAndSend("topic.serv2cli", "serv2cli.traincontrol.model", obj);
 					logger.info("Sent StationControl to [ats-client]: "+mode.getStationcontrol_cmd_type() +  obj + " ");
+				
+					commandHistory.setsClientTime(new Date());
+					cmdHistoryRepository.save(commandHistory);
 				}
 			}
 		}
@@ -506,13 +577,23 @@ public class Tut5Receiver implements ReceiverInterface{
 			msgcmd.setObject_other(cmd.getCmd_parameter().get(1));
 		}
 		
-		cli2serjson = new CLient2serJsonCommand();
+		CLient2serJsonCommand cli2serjson = new CLient2serJsonCommand();
 		cli2serjson.setJson(mapper.writeValueAsString(cmd));
 		cli2serjson.setUsername(cmd.getUser_name());
-		cli2serjson.setClient_num(cmd.getClient_num());
+		cli2serjson.setClientNum(cmd.getClient_num());
 		cli2serjson.setCmd(cmd.getStationcontrol_cmd_type());
+
 		cli2serjson.setMagic((int) (1+Math.random()*Short.MAX_VALUE*2)); //65534(0xFFFE): Short.MAX_VALUE=32767, Short.MIN_VALUE=-32768
-		cmdRepository.save(cli2serjson);
+
+		cli2serjson.setrClientTime(new Date());
+		List<Integer> cmd_para = cmd.getCmd_parameter();
+		if(cmd_para != null && cmd_para.size()>0){
+			String parameterStr = cmd_para.toString();
+			parameterStr = parameterStr.replace("[", "").replace("]", "");
+			cli2serjson.setCmdParameter(parameterStr);
+		}
+		
+		//cmdRepository.save(cli2serjson);
 		//msgcmd.setCom_serial_num(cli2serjson.getId());
 		msgcmd.setCom_serial_num(cli2serjson.getMagic());
 		
@@ -523,6 +604,16 @@ public class Tut5Receiver implements ReceiverInterface{
 		String obj =  mapper.writeValueAsString(cimsg);
 		template.convertAndSend("topic.ats2cu", ats2cicmdKey, obj);
 		
+		cli2serjson.setCmdClass(0);
+		cli2serjson.setsCuTime(new Date());
+		
+		cli2serjson.setWorkstation(cmd.getWorkstation());//sssssssssssssss
+		
+		CLient2serJsonCommandHistory commandHsitory = new CLient2serJsonCommandHistory();
+		BeanUtils.copyProperties(cli2serjson, commandHsitory);
+		cmdHistoryRepository.save(commandHsitory);
+		cmdRepository.save(cli2serjson);
+		
 		header_info =null;
 		msg_header = null;
 		msgcmd = null;
@@ -531,125 +622,60 @@ public class Tut5Receiver implements ReceiverInterface{
 		cli2serjson = null;
 		logger.info("Sent to [ci] " + obj + " ");
 	}
+	
+	
 	/**
 	 * AOD控制命令下发
 	 * @param cmd
 	 * @param cli2serjson
 	 * @throws JsonProcessingException
 	 */
-	public void send2Aod(Client2serCommand cmd)
+	public void send2Aod(Client2serCommand cmd, CLient2serJsonCommandHistory commandHistory)
 	{
 		ObjectMapper mapper = new ObjectMapper();
 		
 		if(cmd.getStationcontrol_cmd_type() ==102 || cmd.getStationcontrol_cmd_type() == 103)
 		{
-			List<SkipStationState> liststate = skipStationStateService.findAll();
+			SkipStationState skipStationState = skipStationStateService.findByPlatformId(cmd.getCmd_parameter().get(0));//获取扣车状态
 			
-			platformDetainState = platformDetainStateService.findByKey("PlatformState");//获取扣车状态
-			
-			if(platformDetainState != null) //判断是否有扣车状态
+			if(skipStationState != null) //判断是否有扣车状态
 			{
 				try {
-					pstateArray = mapper.readValue(platformDetainState.getValue1(), new TypeReference<List<PlatformState>>() {});
-					if(pstateArray.size() > 0)
-					{
-						if(pstateArray.get(cmd.getCmd_parameter().get(0)-1).getState() == 0) //获取站台对应的扣车状态，状态为0才可以跳停
+					//pstateArray = mapper.readValue(platformDetainState.getValue1(), new TypeReference<List<PlatformState>>() {});
+					if(skipStationState.getDetainStatus() == 0){//获取站台对应的扣车状态，状态为0才可以跳停
+						skipStationState.setClientnum(cmd.getClient_num());
+						skipStationState.setUsername(cmd.getUser_name());
+						if(cmd.getStationcontrol_cmd_type() == 102)
 						{
-							if(liststate.size() == 0) //初始化数据库
-							{
-								skipStationState = new SkipStationState();
-								skipStationState.setKey1("SkipStationState");
-								skipStationArray.get((cmd.getCmd_parameter().get(0)-1)).setId(cmd.getCmd_parameter().get(0));
-								skipStationArray.get((cmd.getCmd_parameter().get(0)-1)).setClientnum(cmd.getClient_num());
-								skipStationArray.get((cmd.getCmd_parameter().get(0)-1)).setUsername(cmd.getUser_name());
-								skipStationArray.get((cmd.getCmd_parameter().get(0)-1)).setState(1);
-								skipStationState.setValue1(mapper.writeValueAsString(skipStationArray));
-								skipStationStateService.save(skipStationState); //数据库初始化
-							}
-							if(liststate.size() > 0)
-							{
-								skipStationState = liststate.get(0);
-								skipStationArray = mapper.readValue(skipStationState.getValue1(), new TypeReference<List<PlatformState>>() {});
-								skipStationArray.get((cmd.getCmd_parameter().get(0)-1)).setId(cmd.getCmd_parameter().get(0));
-								skipStationArray.get((cmd.getCmd_parameter().get(0)-1)).setClientnum(cmd.getClient_num());
-								skipStationArray.get((cmd.getCmd_parameter().get(0)-1)).setUsername(cmd.getUser_name());
-								if(cmd.getStationcontrol_cmd_type() == 102)
-								{
-									skipStationArray.get((cmd.getCmd_parameter().get(0)-1)).setState(1);//站台跳停
-								}
-								if(cmd.getStationcontrol_cmd_type() == 103)
-								{
-									skipStationArray.get((cmd.getCmd_parameter().get(0)-1)).setState(0); //取消跳停
-								}
-								skipStationState.setValue1(mapper.writeValueAsString(skipStationArray));
-								skipStationStateService.save(skipStationState); 
-								
-							}
-							logger.info("Sent to Aod .....cmdtype:"+cmd.getStationcontrol_cmd_type());
+							skipStationState.setSkipState((short) 1);//站台跳停
 						}
+						if(cmd.getStationcontrol_cmd_type() == 103)
+						{
+							skipStationState.setSkipState((short) 0);//取消跳停
+						}
+						skipStationStateService.save(skipStationState); 
+						
+						logger.info("Sent to Aod .....cmdtype:"+cmd.getStationcontrol_cmd_type());
 					}
-				} catch (JsonParseException e1) {
-					// TODO Auto-generated catch block
-					e1.printStackTrace();
-				} catch (JsonMappingException e1) {
-					// TODO Auto-generated catch block
-					e1.printStackTrace();
-				} catch (IOException e1) {
+					
+				} catch (Exception e1) {
 					// TODO Auto-generated catch block
 					e1.printStackTrace();
 				}
 			}
-			if(platformDetainState == null)//没有扣车状态信息
-			{
-				try {
-					
-					if(liststate.size() == 0) //初始化数据库
-					{
-						skipStationState = new SkipStationState();
-						skipStationState.setKey1("SkipStationState");
-						skipStationArray.get((cmd.getCmd_parameter().get(0)-1)).setId(cmd.getCmd_parameter().get(0));
-						skipStationArray.get((cmd.getCmd_parameter().get(0)-1)).setClientnum(cmd.getClient_num());
-						skipStationArray.get((cmd.getCmd_parameter().get(0)-1)).setUsername(cmd.getUser_name());
-						skipStationArray.get((cmd.getCmd_parameter().get(0)-1)).setState(1);
-						skipStationState.setValue1(mapper.writeValueAsString(skipStationArray));
-						skipStationStateService.save(skipStationState); //数据库初始化
-					}
-					
-					if(liststate.size() > 0)
-					{
-						skipStationState = liststate.get(0);
-						skipStationArray = mapper.readValue(skipStationState.getValue1(), new TypeReference<List<PlatformState>>() {});						
-						skipStationArray.get((cmd.getCmd_parameter().get(0)-1)).setId(cmd.getCmd_parameter().get(0));
-						skipStationArray.get((cmd.getCmd_parameter().get(0)-1)).setClientnum(cmd.getClient_num());
-						skipStationArray.get((cmd.getCmd_parameter().get(0)-1)).setUsername(cmd.getUser_name());
-						if(cmd.getStationcontrol_cmd_type() == 102)
-						{
-							skipStationArray.get((cmd.getCmd_parameter().get(0)-1)).setState(1);//站台跳停
-						}
-						if(cmd.getStationcontrol_cmd_type() == 103)
-						{
-							skipStationArray.get((cmd.getCmd_parameter().get(0)-1)).setState(0); //取消跳停
-						}
-						skipStationState.setValue1(mapper.writeValueAsString(skipStationArray));
-						skipStationStateService.save(skipStationState); 
-						
-					}
-					logger.info("Sent to Aod .....cmdtype:"+cmd.getStationcontrol_cmd_type());
-				} catch (JsonProcessingException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				} catch (IOException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}				
-			}
 			
-			platformDetainState = null;
 			skipStationState = null;
 			
 		}
 		if(cmd.getStationcontrol_cmd_type() == 104) //立即发车
 		{
+			//-------------myAdd---------?需要保存吗
+			commandHistory.setClientNum(cmd.getClient_num());
+			commandHistory.setCmd(cmd.getStationcontrol_cmd_type());
+			commandHistory.setCmdClass(0);
+			commandHistory.setUsername(cmd.getUser_name());
+			commandHistory.setCmdParameter(cmd.getCmd_parameter().get(0).toString());
+			
 			String ret = restTemplate.getForObject("http://serv39-trainruntask/setSkipStationCommand?platformId={platformId}&carNum={carNum}", String.class,cmd.getCmd_parameter().get(0),cmd.getCmd_parameter().get(1));
 			AodRet aodRet = new AodRet();
 			aodRet.setCmdType(cmd.getStationcontrol_cmd_type());
@@ -661,6 +687,9 @@ public class Tut5Receiver implements ReceiverInterface{
 				json = mapper.writeValueAsString(aodRet);
 				template.convertAndSend("topic.serv2cli", "serv2cli.traincontrol.command_back","tgi_msg:{"+json+"}");
 				logger.info("Sent to Aod .....cmdtype:104...."+json);
+				
+				commandHistory.setsClientTime(new Date());
+				cmdHistoryRepository.save(commandHistory);
 			} catch (JsonProcessingException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
@@ -683,7 +712,7 @@ public class Tut5Receiver implements ReceiverInterface{
 	@RabbitListener(queues = "#{cu2atsCiFeedQueue.name}")
 	public void receiveCu2AtsCiFeed(String in)
 	{
-		logger.info("[CIfeed] receiveCu2AtsCiFeed(): "+in);
+		logger.info("receiveCu2AtsCiFeed(): "+in);
 		
 		Ret2ClientResult ret = null;
 		ObjectMapper omap = new ObjectMapper();
@@ -713,71 +742,68 @@ public class Tut5Receiver implements ReceiverInterface{
 						else //道岔交权的时候ser2clijson为NULL
 						{
 							//ser2clijson = cmdRepository.findOne(ci_feed.getCom_serial_num());//根据SN来查询用户名和客户端ID
-							// 对命令反馈进行有效性判断
 							ser2clijson = cmdRepository.findByMagicAndCmd((int)ci_feed.getCom_serial_num(), ci_feed.getFeed_type());//根据魔数和命令号来查询用户名和客户端ID
+
+							CLient2serJsonCommandHistory ser2clijsonHistory = cmdHistoryRepository.findByMagicAndCmd((int)ci_feed.getCom_serial_num(), ci_feed.getFeed_type());//根据魔数和命令号来查询用户名和客户端ID
+							
+							logger.info("---ser2clijson---"+omap.writeValueAsString(ser2clijson));
 							if (ser2clijson == null) {
 								logger.info("[CIfeed] Can't find this feed's command ({}, {}), so discard!", ci_feed.getFeed_type(), ci_feed.getCom_serial_num());
 								continue;
 							}
 							
-							ser2clijson.setCreatetime(new Date()); // 更新命令反馈的时间信息
-
+							ser2clijson.setrCuTime(new Date());
+							ser2clijsonHistory.setrCuTime(new Date());
+							
 							//if(ci_feed != null && ser2clijson != null)
 							//{
-								//ser2clijson.setRet(ci_feed.getFeed_status());
 								//logger.info("ser2clijson ....." + ser2clijson.getJson());
 								ret = new Ret2ClientResult();
-								ret.setClient_num(ser2clijson.getClient_num());
+								ret.setClient_num(ser2clijson.getClientNum());
 								ret.setUser_name(ser2clijson.getUsername());
 								ret.setResoult(ci_feed.getFeed_status());
 								ret.setStationcontrol_cmd_type(ci_feed.getFeed_type());
 								ret.setCmd_parameter(ci_feed.getFeed_id());//轨道ID
 								ret.setCountdownTime(ci_feed.getFeed_time());
+								
+								ret.setWorkstation(ser2clijson.getWorkstation());
+								
 								if(ci_feed.getFeed_type() == 28 || ci_feed.getFeed_type() == 29)//更新扣车状态
 								{
 									Client2serCommand tempcmd = omap.readValue(ser2clijson.getJson(),Client2serCommand.class);
 									if(ci_feed.getFeed_status() == 1 && tempcmd != null) //等于3表示扣车成功
 									{
-										platformDetainState = platformDetainStateService.findByKey("PlatformState");
+										SkipStationState skipStationState = skipStationStateService.findByPlatformId(tempcmd.getCmd_parameter().get(0));
 										String value = ""; 
-										if(platformDetainState != null)
+										if(skipStationState != null)
 										{
-											if (platformDetainState.getValue1() != null) {
-											//List<PlatformState> tempArray;
-											pstateArray = omap.readValue(platformDetainState.getValue1(), new TypeReference<List<PlatformState>>() {});
-											}
-											pstateArray.get(tempcmd.getCmd_parameter().get(0)-1).setClientnum(tempcmd.getClient_num());//根据站台ID来获取数组下标
-											pstateArray.get(tempcmd.getCmd_parameter().get(0)-1).setId(tempcmd.getCmd_parameter().get(0));
+											skipStationState.setClientnum(tempcmd.getClient_num());
+											skipStationState.setUsername(tempcmd.getUser_name());
+											skipStationState.setWorkstation(tempcmd.getWorkstation());
 											if(ci_feed.getFeed_type() == 28)
 											{
-												pstateArray.get(tempcmd.getCmd_parameter().get(0)-1).setState(1);//设置扣车状态
+												skipStationState.setDetainStatus((short) 1);//设置扣车状态
 											}
 											if(ci_feed.getFeed_type() == 29)
 											{
-												pstateArray.get(tempcmd.getCmd_parameter().get(0)-1).setState(0); //取消扣车状态
+												skipStationState.setDetainStatus((short) 0);//取消扣车状态
 											}
-											pstateArray.get(tempcmd.getCmd_parameter().get(0)-1).setUsername(tempcmd.getUser_name());
-											value = omap.writeValueAsString(pstateArray);
-											platformDetainState.setValue1(value);
-											platformDetainStateService.save(platformDetainState);
+											skipStationStateService.save(skipStationState);
 											logger.info("receiveCu2AtsCiFeed: ----- save feed_status is 0x01 and type is 28 to Db -----");
 										}
 										else//初始化数据库数据
 										{
-											platformDetainState = new PlatformDetainState();
-											pstateArray.get(tempcmd.getCmd_parameter().get(0)-1).setId(tempcmd.getCmd_parameter().get(0));
-											pstateArray.get(tempcmd.getCmd_parameter().get(0)-1).setClientnum(tempcmd.getClient_num());
-											pstateArray.get(tempcmd.getCmd_parameter().get(0)-1).setState(1);
-											pstateArray.get(tempcmd.getCmd_parameter().get(0)-1).setUsername(tempcmd.getUser_name());
-											value = omap.writeValueAsString(pstateArray);
-											platformDetainState.setKey1("PlatformState");
-											platformDetainState.setValue1(value);
-											platformDetainStateService.save(platformDetainState);
+											skipStationState = new SkipStationState();
+											skipStationState.setClientnum(tempcmd.getClient_num());
+											skipStationState.setUsername(tempcmd.getUser_name());
+											skipStationState.setPlatformId(tempcmd.getCmd_parameter().get(0));
+											skipStationState.setWorkstation(tempcmd.getWorkstation());
+											skipStationState.setDetainStatus((short) 1);
+											skipStationStateService.save(skipStationState);
 											logger.info("receiveCu2AtsCiFeed: -----initialize key PlatformState and type is 28 to Db ----");
 											
 										}
 										value = null;
-										platformDetainState = null;
 									}
 									tempcmd = null;
 								}
@@ -803,7 +829,6 @@ public class Tut5Receiver implements ReceiverInterface{
 											
 									}
 								}
-								//String obj = null;
 								//if(ci_feed.getFeed_type() == 37)
 								//{
 									//obj = mapper.writeValueAsString(ci_feed);
@@ -814,18 +839,19 @@ public class Tut5Receiver implements ReceiverInterface{
 										continue;
 									}*/
 								
+								// 将有效的CI命令反馈信息转发给客户端
 								if (ser2clijson.getRet() == ci_feed.getFeed_status()) {
 									logger.info("[CIfeed] feed_status {} is same as the last feed_status {}, so discard!", ci_feed.getFeed_status(), ser2clijson.getRet());
 									continue;
 								}
 								// 命令反馈的状态值不同，则更新数据库表，并转发给客户端
 								ser2clijson.setRet(ci_feed.getFeed_status());
+								ser2clijsonHistory.setRet(ci_feed.getFeed_status());
 								// 将有效的CI命令反馈信息转发给客户端
 								String obj = null;
 								obj = omap.writeValueAsString(ret);
 								template.convertAndSend("topic.serv2cli", "serv2cli.traincontrol.command_back", "{\"stationControl\":"+obj+"}");
 								logger.info("[CIfeed] feed -> Client: " + obj);
-								
 									/**
 									| 12 | 0x12 | 进路ID | 人解 |
 									| 13 | 0x13 | 区段ID | 区段故障解锁 |
@@ -841,9 +867,14 @@ public class Tut5Receiver implements ReceiverInterface{
 									}*/
 								//}
 								
+								logger.info("send to Client Ret"+obj);
+								ser2clijson.setsClientTime(new Date());
+								ser2clijsonHistory.setsClientTime(new Date());
 								
 								cmdRepository.saveAndFlush(ser2clijson);//保存CI返回的执行状态
+								cmdHistoryRepository.saveAndFlush(ser2clijsonHistory);
 								obj = null;
+								
 							/*}
 							else
 							{
@@ -889,6 +920,18 @@ public class Tut5Receiver implements ReceiverInterface{
 		template.convertAndSend("topic.serv2cli", "serv2cli.traincontrol.password_confirm", "{\"stationControl\":"+in+"}");
 		logger.info("send to Client PwdConfirmFeed "+"{\"stationControl\":"+in+"}");
 		in = null;
+		
+		/*ObjectMapper mapper = new ObjectMapper();
+		mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+		RecvPassword recvpassword = mapper.readValue(in,RecvPassword.class);
+		CLient2serJsonCommandHistory ser2clijsonHistory = cmdHistoryRepository.findByMagicAndCmd((int)recvpassword.getCom_serial_num(), recvpassword.getFeed_type());//根据魔数和命令号来查询用户名和客户端ID
+		
+		if (ser2clijsonHistory == null) {
+			logger.info("[CIfeed] Can't find this feed's command ({}, {}), so discard!", recvpassword.getFeed_type(), recvpassword.getCom_serial_num());
+			continue;
+		}
+		
+		ser2clijsonHistory.setrCuTime(new Date());*/
 	}
 
 	/**
@@ -983,15 +1026,20 @@ public class Tut5Receiver implements ReceiverInterface{
 						ciMode.setCi_mode(3);//设置控制模式为未知模式
 						ciModeService.save(ciMode);
 					}
-					platformDetainState = platformDetainStateService.findByKey("PlatformState");
-					if(platformDetainState !=null)
-					{
-						platformDetainStateService.delete(platformDetainState);
+					List<SkipStationState> skipStationStateList = skipStationStateService.findAll();
+					if(skipStationStateList.size()>0)
+					for(SkipStationState skipStationState:skipStationStateList){
+						//skipStationState.setClientnum(0);
+						//skipStationState.setUsername(null);
+						skipStationState.setDetainStatus((short) 0);
+						skipStationStateService.save(skipStationState);
 					}
 					tempmap = null;
 					listmode = null;
 					ciMode = null;
-					platformDetainState = null;
+					tempmap = null;
+					listmode = null;
+					ciMode = null;
 					logger.info("receiveCiInterruptWarning: "+in);
 				}
 			}

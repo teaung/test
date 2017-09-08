@@ -6,5 +6,7 @@ import com.byd.ats.entity.SkipStationState;
 
 public interface SkipStationStateRepository extends JpaRepository<SkipStationState,Long>{
 
-	public SkipStationState findByKey1(String key1);
+	//public SkipStationState findByKey1(String key1);
+
+	public SkipStationState findByPlatformId(int stationId);
 }

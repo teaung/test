@@ -9,7 +9,8 @@ import com.byd.ats.entity.SkipStationState;
 @Transactional
 public interface SkipStationStateService {
 
-	public SkipStationState findByKey(String key);
+	//public SkipStationState findByKey(String key);
 	public void save(SkipStationState state);
 	public List<SkipStationState> findAll();
+	public SkipStationState findByPlatformId(int stationId);
 }

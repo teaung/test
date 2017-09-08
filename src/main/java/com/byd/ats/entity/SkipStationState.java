@@ -14,27 +14,60 @@ public class SkipStationState {
 	@Id
 	@GeneratedValue(strategy=GenerationType.IDENTITY)
 	private long id;
-	private String key1;
-	@Column(name = "value1",length =2048)
-	private String value1;
+
+	private String username;
+	
+	private int clientnum;
+	
+	private int platformId;//站台ID
+	
+	private short skipState;//跳停状态
+	
+	private short detainStatus;//扣车状态
+	
+	private int workstation;
+	
 	public long getId() {
 		return id;
 	}
 	public void setId(long id) {
 		this.id = id;
 	}
-	public String getKey1() {
-		return key1;
+	public String getUsername() {
+		return username;
 	}
-	public void setKey1(String key1) {
-		this.key1 = key1;
+	public void setUsername(String username) {
+		this.username = username;
 	}
-	public String getValue1() {
-		return value1;
+	public int getClientnum() {
+		return clientnum;
 	}
-	public void setValue1(String value1) {
-		this.value1 = value1;
+	public void setClientnum(int clientnum) {
+		this.clientnum = clientnum;
 	}
-	
+	public int getPlatformId() {
+		return platformId;
+	}
+	public void setPlatformId(int platformId) {
+		this.platformId = platformId;
+	}
+	public short getSkipState() {
+		return skipState;
+	}
+	public void setSkipState(short skipState) {
+		this.skipState = skipState;
+	}
+	public short getDetainStatus() {
+		return detainStatus;
+	}
+	public void setDetainStatus(short detainStatus) {
+		this.detainStatus = detainStatus;
+	}
+	public int getWorkstation() {
+		return workstation;
+	}
+	public void setWorkstation(int workstation) {
+		this.workstation = workstation;
+	}
 	
 }

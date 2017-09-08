@@ -2,11 +2,10 @@ package com.byd.ats.entity;
 
 import java.io.Serializable;
 
-import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-public class PlatformState implements Serializable{
+public class SkipStationState2Cli implements Serializable{
 
 	@JsonProperty
 	private int id;
@@ -16,8 +15,6 @@ public class PlatformState implements Serializable{
 	private int clientnum;
 	@JsonProperty
 	private int state;
-	
-	private int workstation;
 	
 	@JsonIgnore
 	public int getId() {
@@ -49,12 +46,6 @@ public class PlatformState implements Serializable{
 	@JsonIgnore
 	public void setState(int state) {
 		this.state = state;
-	}
-	public int getWorkstation() {
-		return workstation;
-	}
-	public void setWorkstation(int workstation) {
-		this.workstation = workstation;
 	}
 	
 	

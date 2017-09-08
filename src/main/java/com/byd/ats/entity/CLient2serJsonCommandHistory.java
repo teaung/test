@@ -1,6 +1,7 @@
 package com.byd.ats.entity;
 
 import java.util.Date;
+import java.util.List;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -10,8 +11,8 @@ import javax.persistence.Id;
 import javax.persistence.Table;
 
 @Entity
-@Table(name = "tb_client2ser_json_command")
-public class CLient2serJsonCommand {
+@Table(name = "tb_client2ser_json_command_history")
+public class CLient2serJsonCommandHistory {
 
 	@Id
 	@GeneratedValue(strategy=GenerationType.IDENTITY)
@@ -40,6 +41,7 @@ public class CLient2serJsonCommand {
 	private int modifiedMode;
 	private int way;
 	private int srcClientNum;
+	
 	public long getId() {
 		return id;
 	}
@@ -178,6 +180,7 @@ public class CLient2serJsonCommand {
 	public void setSrcClientNum(int srcClientNum) {
 		this.srcClientNum = srcClientNum;
 	}
+	
 	
 	
 }

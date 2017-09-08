@@ -5,7 +5,7 @@
 
 	<groupId>com.byd.ats</groupId>
 	<artifactId>serv35-traincontrol</artifactId>
-	<version>0.5.4</version>
+	<version>0.5.4.1</version>
 	<packaging>jar</packaging>
 
 	<name>serv35-traincontrol</name>
@@ -26,9 +26,9 @@
 
 	<dependencies>
 		<dependency>
-			<groupId>com.byd5.ats</groupId>
+			<groupId>com.byd.ats</groupId>
 			<artifactId>lib01-protocol-ats2ext</artifactId>
-			<version>0.0.1</version>
+			<version>0.1.0</version>
 		</dependency>
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
@@ -117,6 +117,17 @@
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-test</artifactId>
 			<scope>test</scope>
+		</dependency>
+
+
+		<dependency>
+			<groupId>org.springframework.cloud</groupId>
+			<artifactId>spring-cloud-sleuth-zipkin</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>org.springframework.cloud</groupId>
+			<artifactId>spring-cloud-starter-hystrix</artifactId>
 		</dependency>
 	</dependencies>
 
