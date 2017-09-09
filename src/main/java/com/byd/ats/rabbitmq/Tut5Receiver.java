@@ -202,6 +202,7 @@ public class Tut5Receiver implements ReceiverInterface{
 					{
 						CLient2serJsonCommandHistory commandHistory = new CLient2serJsonCommandHistory();
 						commandHistory.setrClientTime(new Date());
+						commandHistory.setJson(in);
 						sendPwdConfirm2CU(pwdcmd, commandHistory);
 					}
 				}
@@ -213,6 +214,7 @@ public class Tut5Receiver implements ReceiverInterface{
 					{
 						CLient2serJsonCommandHistory commandHistory = new CLient2serJsonCommandHistory();
 						commandHistory.setrClientTime(new Date());
+						commandHistory.setJson(in);
 						sendMode2Client(in,mode,commandHistory);
 					}
 				}
@@ -230,6 +232,7 @@ public class Tut5Receiver implements ReceiverInterface{
 					{
 						CLient2serJsonCommandHistory commandHistory = new CLient2serJsonCommandHistory();
 						commandHistory.setrClientTime(new Date());
+						commandHistory.setJson(in);
 						send2Aod(cmd,commandHistory);
 					}
 				}
@@ -301,12 +304,12 @@ public class Tut5Receiver implements ReceiverInterface{
 		mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
 		
 		//-------------myAdd---------
-		commandHistory.setClientNum(pwdcmd.getClient_num());
+		commandHistory.setClient_num(pwdcmd.getClient_num());
 		commandHistory.setCmd(pwdcmd.getStationcontrol_cmd_type());
 		commandHistory.setCmdClass(1);
-		commandHistory.setForCmd(pwdcmd.getFor_cmd());
+		//commandHistory.setForCmd(pwdcmd.getFor_cmd());
 		commandHistory.setUsername(pwdcmd.getUser_name());
-		commandHistory.setPassword(pwdcmd.getPassword());
+		//commandHistory.setPassword(pwdcmd.getPassword());
 		commandHistory.setsCuTime(new Date());
 		cmdHistoryRepository.save(commandHistory);
 		
@@ -337,16 +340,16 @@ public class Tut5Receiver implements ReceiverInterface{
 		mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
 		
 		//-------myAdd-------
-		commandHistory.setClientNum(mode.getClient_num());
+		commandHistory.setClient_num(mode.getClient_num());
 		commandHistory.setCmd(mode.getStationcontrol_cmd_type());
 		commandHistory.setCmdClass(0);
 		commandHistory.setUsername(mode.getUser_name());
-		commandHistory.setCiNum(mode.getCi_num());
-		commandHistory.setCurrentMode(mode.getCurrent_mode());
-		commandHistory.setModifiedMode(mode.getModified_mode());
-		commandHistory.setWay(mode.getWay());
-		commandHistory.setSrcClientNum(mode.getSrc_client_num());
-		commandHistory.setMagic((int) (1+Math.random()*Short.MIN_VALUE*2));
+		//commandHistory.setCiNum(mode.getCi_num());
+		//commandHistory.setCurrentMode(mode.getCurrent_mode());
+		//commandHistory.setModifiedMode(mode.getModified_mode());
+		//commandHistory.setWay(mode.getWay());
+		//commandHistory.setSrcClientNum(mode.getSrc_client_num());
+		commandHistory.setMagic((int) (1000+Math.random()*Short.MAX_VALUE*2));
 		//cmdHistoryRepository.save(commandHistory);
 		
 		//System.out.println("getCi_mode()...."+getCi_mode());
@@ -580,18 +583,18 @@ public class Tut5Receiver implements ReceiverInterface{
 		CLient2serJsonCommand cli2serjson = new CLient2serJsonCommand();
 		cli2serjson.setJson(mapper.writeValueAsString(cmd));
 		cli2serjson.setUsername(cmd.getUser_name());
-		cli2serjson.setClientNum(cmd.getClient_num());
+		cli2serjson.setClient_num(cmd.getClient_num());
 		cli2serjson.setCmd(cmd.getStationcontrol_cmd_type());
 
-		cli2serjson.setMagic((int) (1+Math.random()*Short.MAX_VALUE*2)); //65534(0xFFFE): Short.MAX_VALUE=32767, Short.MIN_VALUE=-32768
+		cli2serjson.setMagic((int) (1000+Math.random()*Short.MAX_VALUE*2)); //65534(0xFFFE): Short.MAX_VALUE=32767, Short.MIN_VALUE=-32768
 
 		cli2serjson.setrClientTime(new Date());
-		List<Integer> cmd_para = cmd.getCmd_parameter();
+		/*List<Integer> cmd_para = cmd.getCmd_parameter();
 		if(cmd_para != null && cmd_para.size()>0){
 			String parameterStr = cmd_para.toString();
 			parameterStr = parameterStr.replace("[", "").replace("]", "");
 			cli2serjson.setCmdParameter(parameterStr);
-		}
+		}*/
 		
 		//cmdRepository.save(cli2serjson);
 		//msgcmd.setCom_serial_num(cli2serjson.getId());
@@ -670,11 +673,11 @@ public class Tut5Receiver implements ReceiverInterface{
 		if(cmd.getStationcontrol_cmd_type() == 104) //立即发车
 		{
 			//-------------myAdd---------?需要保存吗
-			commandHistory.setClientNum(cmd.getClient_num());
+			commandHistory.setClient_num(cmd.getClient_num());
 			commandHistory.setCmd(cmd.getStationcontrol_cmd_type());
 			commandHistory.setCmdClass(0);
 			commandHistory.setUsername(cmd.getUser_name());
-			commandHistory.setCmdParameter(cmd.getCmd_parameter().get(0).toString());
+			//commandHistory.setCmdParameter(cmd.getCmd_parameter().get(0).toString());
 			
 			String ret = restTemplate.getForObject("http://serv39-trainruntask/setSkipStationCommand?platformId={platformId}&carNum={carNum}", String.class,cmd.getCmd_parameter().get(0),cmd.getCmd_parameter().get(1));
 			AodRet aodRet = new AodRet();
@@ -759,7 +762,7 @@ public class Tut5Receiver implements ReceiverInterface{
 							//{
 								//logger.info("ser2clijson ....." + ser2clijson.getJson());
 								ret = new Ret2ClientResult();
-								ret.setClient_num(ser2clijson.getClientNum());
+								ret.setClient_num(ser2clijson.getClient_num());
 								ret.setUser_name(ser2clijson.getUsername());
 								ret.setResoult(ci_feed.getFeed_status());
 								ret.setStationcontrol_cmd_type(ci_feed.getFeed_type());
