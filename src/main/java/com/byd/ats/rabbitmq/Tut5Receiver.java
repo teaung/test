@@ -272,6 +272,10 @@ public class Tut5Receiver implements ReceiverInterface{
 					skipStationState.setUsername(platformState.getUsername());
 					skipStationState.setDetainStatus((short) platformState.getState());
 					skipStationState.setWorkstation(platformState.getWorkstation());
+					//判断是否有扣车，有扣车则取消跳停
+					if(platformState.getState() == 1){
+						skipStationState.setSkipState((short) 0);
+					}
 					skipStationStateService.save(skipStationState);
 					logger.info("send to client updateSkipStationStatus exce ok .... ");
 				}
@@ -282,6 +286,10 @@ public class Tut5Receiver implements ReceiverInterface{
 					skipStationState.setPlatformId(platformState.getId());
 					skipStationState.setDetainStatus((short) platformState.getState());
 					skipStationState.setWorkstation(platformState.getWorkstation());
+					//判断是否有扣车，有扣车则取消跳停
+					if(platformState.getState() == 1){
+						skipStationState.setSkipState((short) 0);
+					}
 					skipStationStateService.save(skipStationState);
 					logger.info("send to client updateSkipStationStatus exce ok .... ");
 				}
@@ -774,7 +782,7 @@ public class Tut5Receiver implements ReceiverInterface{
 								if(ci_feed.getFeed_type() == 28 || ci_feed.getFeed_type() == 29)//更新扣车状态
 								{
 									Client2serCommand tempcmd = omap.readValue(ser2clijson.getJson(),Client2serCommand.class);
-									if(ci_feed.getFeed_status() == 1 && tempcmd != null) //等于3表示扣车成功
+									if(ci_feed.getFeed_status() == 1 && tempcmd != null) //等于1表示扣车成功
 									{
 										SkipStationState skipStationState = skipStationStateService.findByPlatformId(tempcmd.getCmd_parameter().get(0));
 										String value = ""; 
@@ -786,6 +794,7 @@ public class Tut5Receiver implements ReceiverInterface{
 											if(ci_feed.getFeed_type() == 28)
 											{
 												skipStationState.setDetainStatus((short) 1);//设置扣车状态
+												skipStationState.setSkipState((short) 0);//取消跳停
 											}
 											if(ci_feed.getFeed_type() == 29)
 											{
@@ -801,7 +810,15 @@ public class Tut5Receiver implements ReceiverInterface{
 											skipStationState.setUsername(tempcmd.getUser_name());
 											skipStationState.setPlatformId(tempcmd.getCmd_parameter().get(0));
 											skipStationState.setWorkstation(tempcmd.getWorkstation());
-											skipStationState.setDetainStatus((short) 1);
+											if(ci_feed.getFeed_type() == 28)
+											{
+												skipStationState.setDetainStatus((short) 1);//设置扣车状态
+												skipStationState.setSkipState((short) 0);//取消跳停
+											}
+											if(ci_feed.getFeed_type() == 29)
+											{
+												skipStationState.setDetainStatus((short) 0);//取消扣车状态
+											}
 											skipStationStateService.save(skipStationState);
 											logger.info("receiveCu2AtsCiFeed: -----initialize key PlatformState and type is 28 to Db ----");
 											
