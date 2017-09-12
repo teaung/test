@@ -193,6 +193,12 @@ public class Tut5Receiver implements ReceiverInterface{
 					{						
 						send2CI(cmd);
 					}
+					
+					//设置自动折返进路:22，或者取消自动折返进路：23时，转发给进路办理-----------2017/9/11
+					if(cmd.getStationcontrol_cmd_type() == 22 || cmd.getStationcontrol_cmd_type() == 23){
+						template.convertAndSend("topic.ats.trainroute", "ats.trainroute.auto_return", in);
+						logger.info("send to trainroute auto_return "+in);
+					}
 				}
 
 				if(tempmap.get("cmd_class").toString().equals("password"))
@@ -312,7 +318,7 @@ public class Tut5Receiver implements ReceiverInterface{
 		mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
 		
 		//-------------myAdd---------
-		commandHistory.setClient_num(pwdcmd.getClient_num());
+		commandHistory.setClientNum(pwdcmd.getClient_num());
 		commandHistory.setCmd(pwdcmd.getStationcontrol_cmd_type());
 		commandHistory.setCmdClass(1);
 		//commandHistory.setForCmd(pwdcmd.getFor_cmd());
@@ -348,7 +354,7 @@ public class Tut5Receiver implements ReceiverInterface{
 		mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
 		
 		//-------myAdd-------
-		commandHistory.setClient_num(mode.getClient_num());
+		commandHistory.setClientNum(mode.getClient_num());
 		commandHistory.setCmd(mode.getStationcontrol_cmd_type());
 		commandHistory.setCmdClass(0);
 		commandHistory.setUsername(mode.getUser_name());
@@ -591,7 +597,7 @@ public class Tut5Receiver implements ReceiverInterface{
 		CLient2serJsonCommand cli2serjson = new CLient2serJsonCommand();
 		cli2serjson.setJson(mapper.writeValueAsString(cmd));
 		cli2serjson.setUsername(cmd.getUser_name());
-		cli2serjson.setClient_num(cmd.getClient_num());
+		cli2serjson.setClientNum(cmd.getClient_num());
 		cli2serjson.setCmd(cmd.getStationcontrol_cmd_type());
 
 		cli2serjson.setMagic((int) (1000+Math.random()*Short.MAX_VALUE*2)); //65534(0xFFFE): Short.MAX_VALUE=32767, Short.MIN_VALUE=-32768
@@ -681,7 +687,7 @@ public class Tut5Receiver implements ReceiverInterface{
 		if(cmd.getStationcontrol_cmd_type() == 104) //立即发车
 		{
 			//-------------myAdd---------?需要保存吗
-			commandHistory.setClient_num(cmd.getClient_num());
+			commandHistory.setClientNum(cmd.getClient_num());
 			commandHistory.setCmd(cmd.getStationcontrol_cmd_type());
 			commandHistory.setCmdClass(0);
 			commandHistory.setUsername(cmd.getUser_name());
@@ -755,13 +761,12 @@ public class Tut5Receiver implements ReceiverInterface{
 							//ser2clijson = cmdRepository.findOne(ci_feed.getCom_serial_num());//根据SN来查询用户名和客户端ID
 							ser2clijson = cmdRepository.findByMagicAndCmd((int)ci_feed.getCom_serial_num(), ci_feed.getFeed_type());//根据魔数和命令号来查询用户名和客户端ID
 
-							CLient2serJsonCommandHistory ser2clijsonHistory = cmdHistoryRepository.findByMagicAndCmd((int)ci_feed.getCom_serial_num(), ci_feed.getFeed_type());//根据魔数和命令号来查询用户名和客户端ID
-							
-							logger.info("---ser2clijson---"+omap.writeValueAsString(ser2clijson));
 							if (ser2clijson == null) {
 								logger.info("[CIfeed] Can't find this feed's command ({}, {}), so discard!", ci_feed.getFeed_type(), ci_feed.getCom_serial_num());
 								continue;
 							}
+							
+							CLient2serJsonCommandHistory ser2clijsonHistory = cmdHistoryRepository.findByMagicAndCmdAndRClientTimeAndClientNum((int)ci_feed.getCom_serial_num(), ci_feed.getFeed_type(), ser2clijson.getrClientTime(), ser2clijson.getClientNum());//根据魔数和命令号来查询用户名和客户端ID
 							
 							ser2clijson.setrCuTime(new Date());
 							ser2clijsonHistory.setrCuTime(new Date());
@@ -770,7 +775,7 @@ public class Tut5Receiver implements ReceiverInterface{
 							//{
 								//logger.info("ser2clijson ....." + ser2clijson.getJson());
 								ret = new Ret2ClientResult();
-								ret.setClient_num(ser2clijson.getClient_num());
+								ret.setClient_num(ser2clijson.getClientNum());
 								ret.setUser_name(ser2clijson.getUsername());
 								ret.setResoult(ci_feed.getFeed_status());
 								ret.setStationcontrol_cmd_type(ci_feed.getFeed_type());

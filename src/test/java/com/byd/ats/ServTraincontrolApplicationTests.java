@@ -1,4 +1,4 @@
-package com.byd.ats;
+/*package com.byd.ats;
 
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
@@ -27,8 +27,8 @@ import org.springframework.web.client.RestTemplate;
 import org.springframework.web.context.WebApplicationContext;
 
 import com.byd.ats.entity.Client2serCommand;
-/*import com.byd.ats.entity.Person;
-import com.byd.ats.service.PersonRepository;*/
+import com.byd.ats.entity.Person;
+import com.byd.ats.service.PersonRepository;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -40,18 +40,18 @@ import junit.framework.Assert;
 public class ServTraincontrolApplicationTests {
 
 	private MockMvc mvc;
-/*	@Autowired
+	@Autowired
 	private StringRedisTemplate stringRedisTemplate;
 	@Autowired
-	private RedisTemplate redisTemplate;*/
-/*	@Autowired
-	private RedisService redisService;*/
+	private RedisTemplate redisTemplate;
+	@Autowired
+	private RedisService redisService;
 	//private Logger logger = Logger.getLogger(getClass());
 	//public ObjectMapper mapper = new ObjectMapper();
 	//@Autowired
 	//private RabbitTemplate template;
 	
-/*	@Autowired
+	@Autowired
 	PersonRepository personRepository;
 	MockMvc mvc;
 	@Autowired
@@ -84,12 +84,12 @@ public class ServTraincontrolApplicationTests {
 		Assert.assertEquals("test.......erro2", expectedJson,content);
 		
 		System.out.println("...............................................................");
-	}*/
+	}
 
 	@Test
 	public void test2()
 	{
-/*		Client2serCommand client2serCommand = new Client2serCommand();
+		Client2serCommand client2serCommand = new Client2serCommand();
 		client2serCommand.setCmd_class("aod");
 		client2serCommand.setStationcontrol_cmd_type(104);
 		client2serCommand.setClient_num(101);
@@ -105,10 +105,10 @@ public class ServTraincontrolApplicationTests {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		System.out.println("0000000000000000000000000000000000000000000");*/
+		System.out.println("0000000000000000000000000000000000000000000");
 	}
 	
-/*		@Test
+		@Test
 	public void contextLoads() throws Exception {
 		mvc.perform(MockMvcRequestBuilders.get("/hello").accept(MediaType.APPLICATION_JSON))
 		.andExpect(status().isOk())
@@ -124,6 +124,7 @@ public class ServTraincontrolApplicationTests {
 		AtsAutoTrigger dd = (AtsAutoTrigger) redisService.get("bbb");
 		logger.info(".....debug.................."+dd.getId()+"  "+dd.getName());
 
-	}*/
+	}
 
 }
+*/

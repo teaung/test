@@ -19,7 +19,7 @@ public class CLient2serJsonCommand {
 	@Column(name = "json",length =1024)
 	private String json;
 	private String username;
-	private int client_num;
+	private int clientNum;
 	private int ret;
 	//private Date createtime;
 	private int status = 0; // 0:无效; 1:客户端发送命令至运行控制模块；2：运行控制模块下发命令给CU；3：收到CU的命令反馈；4：将命令反馈发送给客户端
@@ -65,11 +65,11 @@ public class CLient2serJsonCommand {
 	public void setUsername(String username) {
 		this.username = username;
 	}
-	public int getClient_num() {
-		return client_num;
+	public int getClientNum() {
+		return clientNum;
 	}
-	public void setClient_num(int client_num) {
-		this.client_num = client_num;
+	public void setClientNum(int clientNum) {
+		this.clientNum = clientNum;
 	}
 	public int getRet() {
 		return ret;
