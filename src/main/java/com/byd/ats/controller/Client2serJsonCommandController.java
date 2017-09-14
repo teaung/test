@@ -65,47 +65,34 @@ public class Client2serJsonCommandController {
 			for(CLient2serJsonCommandHistory cmd:clientCmdHistory){
 				String json = cmd.getJson();
 				Map<String,Object> tempmap = mapper.readValue(json, Map.class);
+				CLient2serJsonCommand2report cmd2report = new CLient2serJsonCommand2report();
 				if(tempmap.get("cmd_class").toString().equals("ci")){
 					Client2serCommand Client2serCommand = mapper.readValue(json, Client2serCommand.class);
-					CLient2serJsonCommand2report cmd2report = new CLient2serJsonCommand2report();
 					BeanUtils.copyProperties(Client2serCommand, cmd2report);
-					cmd2report.setrClientTime(cmd.getrClientTime());
-					cmd2report.setInstruction(CmdEnum.getByCode(cmd.getCmd()).getMsg());//命令说明
-					CLientcmd2report.add(cmd2report);
 				}
 				
 				if(tempmap.get("cmd_class").toString().equals("password")){
 					Client2serPwdCommand pwdcmd = mapper.readValue(json, Client2serPwdCommand.class);
-					CLient2serJsonCommand2report cmd2report = new CLient2serJsonCommand2report();
 					BeanUtils.copyProperties(pwdcmd, cmd2report);
-					cmd2report.setrClientTime(cmd.getrClientTime());
-					cmd2report.setInstruction(CmdEnum.getByCode(cmd.getCmd()).getMsg());//命令说明
-					CLientcmd2report.add(cmd2report);
 				}
 				
 				if(tempmap.get("cmd_class").toString().equals("atsmode")){
 					AtsModeSwitch mode = mapper.readValue(json, AtsModeSwitch.class);
-					CLient2serJsonCommand2report cmd2report = new CLient2serJsonCommand2report();
 					BeanUtils.copyProperties(mode, cmd2report);
-					cmd2report.setrClientTime(cmd.getrClientTime());
-					cmd2report.setInstruction(CmdEnum.getByCode(cmd.getCmd()).getMsg());//命令说明
-					CLientcmd2report.add(cmd2report);
 				}
 				
 				if(tempmap.get("cmd_class").toString().equals("aod")){
 					Client2serCommand aodcmd = mapper.readValue(json, Client2serCommand.class);
-					CLient2serJsonCommand2report cmd2report = new CLient2serJsonCommand2report();
 					BeanUtils.copyProperties(aodcmd, cmd2report);
-					cmd2report.setrClientTime(cmd.getrClientTime());
-					cmd2report.setInstruction(CmdEnum.getByCode(cmd.getCmd()).getMsg());//命令说明
-					CLientcmd2report.add(cmd2report);
 				}
-				
+				cmd2report.setrClientTime(cmd.getrClientTime());
+				cmd2report.setInstruction(CmdEnum.getByCode(cmd.getCmd()).getMsg());//命令说明
+				CLientcmd2report.add(cmd2report);
 			}
 			returnStr = mapper.writeValueAsString(CLientcmd2report);
 		}
 		
-		logger.info("send [getClientCommand]");//+returnStr);
+		logger.info("send [getClientCommand]"+returnStr);
 		return returnStr;
 		
 	}

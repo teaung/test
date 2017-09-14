@@ -194,11 +194,6 @@ public class Tut5Receiver implements ReceiverInterface{
 						send2CI(cmd);
 					}
 					
-					//设置自动折返进路:22，或者取消自动折返进路：23时，转发给进路办理-----------2017/9/11
-					if(cmd.getStationcontrol_cmd_type() == 22 || cmd.getStationcontrol_cmd_type() == 23){
-						template.convertAndSend("topic.ats.trainroute", "ats.trainroute.auto_return", in);
-						logger.info("send to trainroute auto_return "+in);
-					}
 				}
 
 				if(tempmap.get("cmd_class").toString().equals("password"))
@@ -358,15 +353,8 @@ public class Tut5Receiver implements ReceiverInterface{
 		commandHistory.setCmd(mode.getStationcontrol_cmd_type());
 		commandHistory.setCmdClass(0);
 		commandHistory.setUsername(mode.getUser_name());
-		//commandHistory.setCiNum(mode.getCi_num());
-		//commandHistory.setCurrentMode(mode.getCurrent_mode());
-		//commandHistory.setModifiedMode(mode.getModified_mode());
-		//commandHistory.setWay(mode.getWay());
-		//commandHistory.setSrcClientNum(mode.getSrc_client_num());
-		commandHistory.setMagic((int) (1000+Math.random()*Short.MAX_VALUE*2));
-		//cmdHistoryRepository.save(commandHistory);
+		commandHistory.setMagic((int) (1000+Math.random()*(Short.MAX_VALUE*2-1000)));
 		
-		//System.out.println("getCi_mode()...."+getCi_mode());
 		if(mode.getStationcontrol_cmd_type() == 171) //171为中心调度员请求转为中控
 		{
 			String obj = "{\"stationControl\":"+in+"}";
@@ -600,18 +588,9 @@ public class Tut5Receiver implements ReceiverInterface{
 		cli2serjson.setClientNum(cmd.getClient_num());
 		cli2serjson.setCmd(cmd.getStationcontrol_cmd_type());
 
-		cli2serjson.setMagic((int) (1000+Math.random()*Short.MAX_VALUE*2)); //65534(0xFFFE): Short.MAX_VALUE=32767, Short.MIN_VALUE=-32768
+		cli2serjson.setMagic((int) (1000+Math.random()*(Short.MAX_VALUE*2-1000))); //65534(0xFFFE): Short.MAX_VALUE=32767, Short.MIN_VALUE=-32768
 
 		cli2serjson.setrClientTime(new Date());
-		/*List<Integer> cmd_para = cmd.getCmd_parameter();
-		if(cmd_para != null && cmd_para.size()>0){
-			String parameterStr = cmd_para.toString();
-			parameterStr = parameterStr.replace("[", "").replace("]", "");
-			cli2serjson.setCmdParameter(parameterStr);
-		}*/
-		
-		//cmdRepository.save(cli2serjson);
-		//msgcmd.setCom_serial_num(cli2serjson.getId());
 		msgcmd.setCom_serial_num(cli2serjson.getMagic());
 		
 		cimsg.setHeader_info(header_info);
@@ -877,6 +856,16 @@ public class Tut5Receiver implements ReceiverInterface{
 								obj = omap.writeValueAsString(ret);
 								template.convertAndSend("topic.serv2cli", "serv2cli.traincontrol.command_back", "{\"stationControl\":"+obj+"}");
 								logger.info("[CIfeed] feed -> Client: " + obj);
+								
+								//设置自动折返进路:22，或者取消自动折返进路：23，设置联锁自动通过进路:30,取消联锁自动通过进路:33
+								//转发给进路办理-----------2017/9/14
+								if(ci_feed.getFeed_status() == 1
+										&& (ci_feed.getFeed_type() == 22 || ci_feed.getFeed_type() == 23
+										|| ci_feed.getFeed_type() == 30 || ci_feed.getFeed_type() ==31)){
+									template.convertAndSend("topic.ats.trainroute", "ats.trainroute.command_feedback", in);
+									logger.info("send to trainroute auto_return "+in);
+								}
+								
 									/**
 									| 12 | 0x12 | 进路ID | 人解 |
 									| 13 | 0x13 | 区段ID | 区段故障解锁 |
