@@ -193,7 +193,12 @@ public class Tut5Receiver implements ReceiverInterface{
 					{						
 						send2CI(cmd);
 					}
-					
+					//设置自动折返进路:22，或者取消自动折返进路：23
+					//转发给进路办理-----------2017/9/14
+					if(cmd.getStationcontrol_cmd_type() == 22 || cmd.getStationcontrol_cmd_type() == 23){
+						template.convertAndSend("topic.ats.trainroute", "ats.trainroute.command_feedback", in);
+						logger.info("send to trainroute auto_return "+cmd);
+					}
 				}
 
 				if(tempmap.get("cmd_class").toString().equals("password"))
@@ -860,10 +865,9 @@ public class Tut5Receiver implements ReceiverInterface{
 								//设置自动折返进路:22，或者取消自动折返进路：23，设置联锁自动通过进路:30,取消联锁自动通过进路:33
 								//转发给进路办理-----------2017/9/14
 								if(ci_feed.getFeed_status() == 1
-										&& (ci_feed.getFeed_type() == 22 || ci_feed.getFeed_type() == 23
-										|| ci_feed.getFeed_type() == 30 || ci_feed.getFeed_type() ==31)){
-									template.convertAndSend("topic.ats.trainroute", "ats.trainroute.command_feedback", in);
-									logger.info("send to trainroute auto_return "+in);
+										&& (ci_feed.getFeed_type() == 30 || ci_feed.getFeed_type() ==31)){
+									template.convertAndSend("topic.ats.trainroute", "ats.trainroute.command_feedback", obj);
+									logger.info("send to trainroute auto_return "+obj);
 								}
 								
 									/**

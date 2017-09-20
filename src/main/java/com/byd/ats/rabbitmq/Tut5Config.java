@@ -113,11 +113,11 @@ public class Tut5Config {
 			return new Queue("q.traincontrol.cu2atsCiInterruptWarning");
 		}
 		
-		@Bean
+		/*@Bean
 		public Queue ser2serTraintraceQueue() {
 			//return new AnonymousQueue();
 			return new Queue("q.traincontrol.trainArriveStatus");
-		}
+		}*/
 		@Bean
 		public Binding binding1a(@Qualifier("topicCli2Serv") TopicExchange topic, Queue cli2ServTrainControlQueue) {
 			return BindingBuilder.bind(cli2ServTrainControlQueue).to(topic).with("cli2serv.traincontrol.command");
@@ -144,10 +144,10 @@ public class Tut5Config {
 			return BindingBuilder.bind(cu2atsCiInterruptWarningQueue).to(topic).with("cu2ats.cu.warning");
 		}
 
-		@Bean
+		/*@Bean
 		public Binding binding1i(@Qualifier("topicTraintrace") TopicExchange topic,Queue ser2serTraintraceQueue) {
 			return BindingBuilder.bind(ser2serTraintraceQueue).to(topic).with("ats.traintrace.station.arrive");
-		}
+		}*/
 	}
 
 	//@Profile("sender")
