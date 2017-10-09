@@ -12,7 +12,7 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- */
+ 
 package com.byd.ats.rabbitmq;
 
 import java.io.IOException;
@@ -95,11 +95,11 @@ import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.thoughtworks.xstream.mapper.Mapper;
 
-/**
+*//**
  * @author zhang.yuan7
- */
+ *//*
 //@RabbitListener(queues = "#{autoDeleteQueue1.name}")
-public class Tut5Receiver implements ReceiverInterface{
+public class Tut5ReceiverBak implements ReceiverInterface{
 	
 	private final Logger logger = LoggerFactory.getLogger(this.getClass());
 	
@@ -118,8 +118,8 @@ public class Tut5Receiver implements ReceiverInterface{
 	private SkipStationStateService skipStationStateService;
 	@Autowired
 	private RestTemplate restTemplate;
-/*	@Autowired
-	RedisService redisService;*/
+	@Autowired
+	RedisService redisService;
 	
 	private String ats2cicmdKey= "ats2cu.ci.command";
 	private String ats2cistaKey = "ats2cu.ci.ats_status";
@@ -159,7 +159,7 @@ public class Tut5Receiver implements ReceiverInterface{
 	}
 	
 	
-	public Tut5Receiver()
+	public Tut5ReceiverBak()
 	{
 		for(int i=0;i<8;i++)
 		{
@@ -170,11 +170,11 @@ public class Tut5Receiver implements ReceiverInterface{
 	}
 	
 	
-	/**
+	*//**
 	 * 监听客户端指令下发
 	 * @param in
 	 * @throws JsonProcessingException
-	 */
+	 *//*
 	@RabbitListener(queues = "#{cli2ServTrainControlQueue.name}")
 	public void receive(String in){
 		logger.info("receive ....." + in);
@@ -307,11 +307,11 @@ public class Tut5Receiver implements ReceiverInterface{
 		}
 		json = null;
 	}
-	/**
+	*//**
 	 * 发送密码确认信息给CU
 	 * @param pwdcmd
 	 * @throws JsonProcessingException
-	 */
+	 *//*
 	public void sendPwdConfirm2CU(Client2serPwdCommand pwdcmd, CLient2serJsonCommandHistory commandHistory) throws JsonProcessingException
 	{
 		ObjectMapper mapper = new ObjectMapper();
@@ -343,11 +343,11 @@ public class Tut5Receiver implements ReceiverInterface{
 		logger.info("Sent Client2cuPasswordConfirm to [ats-cu] " + obj + " ");
 	}
 	
-	/**
+	*//**
 	 * 客户端切换站控模式
 	 * @param contrcmd
 	 * @throws JsonProcessingException
-	 */
+	 *//*
 	public void sendMode2Client(String in,AtsModeSwitch mode, CLient2serJsonCommandHistory commandHistory) throws JsonProcessingException
 	{
 		ObjectMapper mapper = new ObjectMapper();
@@ -562,12 +562,12 @@ public class Tut5Receiver implements ReceiverInterface{
 		mode = null;
 	}
 
-	/**
+	*//**
 	 * CI控制命令下发
 	 * @param cmd
 	 * @param cli2serjson
 	 * @throws JsonProcessingException
-	 */
+	 *//*
 	public void send2CI(Client2serCommand cmd) throws JsonProcessingException {
 
 		ObjectMapper mapper = new ObjectMapper();
@@ -592,8 +592,8 @@ public class Tut5Receiver implements ReceiverInterface{
 		cli2serjson.setUsername(cmd.getUser_name());
 		cli2serjson.setClientNum(cmd.getClient_num());
 		cli2serjson.setCmd(cmd.getStationcontrol_cmd_type());
-		cli2serjson.setMagic(getNewMagic());
-		//cli2serjson.setMagic((int) (1000+Math.random()*(Short.MAX_VALUE*2-1000))); //65534(0xFFFE): Short.MAX_VALUE=32767, Short.MIN_VALUE=-32768
+
+		cli2serjson.setMagic((int) (1000+Math.random()*(Short.MAX_VALUE*2-1000))); //65534(0xFFFE): Short.MAX_VALUE=32767, Short.MIN_VALUE=-32768
 
 		cli2serjson.setrClientTime(new Date());
 		msgcmd.setCom_serial_num(cli2serjson.getMagic());
@@ -624,25 +624,13 @@ public class Tut5Receiver implements ReceiverInterface{
 		logger.info("Sent to [ci] " + obj + " ");
 	}
 	
-	/**
-	 * 获取新的流水号
-	 * @return
-	 */
-	public int getNewMagic(){
-		int magic = 1000;//初始化值1000
-		CLient2serJsonCommand lastCommand = cmdRepository.findTop1ByOrderByIdDesc();
-		if(lastCommand != null && lastCommand.getMagic() < 65534){//最后一条记录的流水号小于65534时，则新流水号为在其基础上自增1，否则为初始值
-			magic = lastCommand.getMagic() + 1;
-		}
-		return magic;
-	}
 	
-	/**
+	*//**
 	 * AOD控制命令下发
 	 * @param cmd
 	 * @param cli2serjson
 	 * @throws JsonProcessingException
-	 */
+	 *//*
 	public void send2Aod(Client2serCommand cmd, CLient2serJsonCommandHistory commandHistory)
 	{
 		ObjectMapper mapper = new ObjectMapper();
@@ -715,13 +703,13 @@ public class Tut5Receiver implements ReceiverInterface{
 		
 	}
 	
-	/**
+	*//**
 	 * CI命令下发信息反馈监听
 	 * @param in
 	 * @throws JsonParseException
 	 * @throws JsonMappingException
 	 * @throws IOException
-	 */
+	 *//*
 	@RabbitListener(queues = "#{cu2atsCiFeedQueue.name}")
 	public void receiveCu2AtsCiFeed(String in)
 	{
@@ -856,9 +844,9 @@ public class Tut5Receiver implements ReceiverInterface{
 									//template.convertAndSend("topic.serv2cli", "serv2cli.traincontrol.command_back", "{\"stationControl\":"+obj+"}");
 								//}else
 								//{
-									/*if (ser2clijson.getStatus() == 4) { // 该命令已经反馈给客户端
+									if (ser2clijson.getStatus() == 4) { // 该命令已经反馈给客户端
 										continue;
-									}*/
+									}
 								
 								// 将有效的CI命令反馈信息转发给客户端
 								if (ser2clijson.getRet() == ci_feed.getFeed_status()) {
@@ -882,19 +870,19 @@ public class Tut5Receiver implements ReceiverInterface{
 									logger.info("send to trainroute auto_return "+obj);
 								}
 								
-									/**
+									*//**
 									| 12 | 0x12 | 进路ID | 人解 |
 									| 13 | 0x13 | 区段ID | 区段故障解锁 |
 									| 15 | 0x15 | 进路ID | 引导进路办理 |
-									*/
-									/*if (ci_feed.getFeed_type() == 12 || ci_feed.getFeed_type() == 13 || ci_feed.getFeed_type() == 15) {
+									*//*
+									if (ci_feed.getFeed_type() == 12 || ci_feed.getFeed_type() == 13 || ci_feed.getFeed_type() == 15) {
 										if (ci_feed.getFeed_status() != 0xff) { // 如果命令反馈状态不为等待状态（0xff），即此命令执行流程结束
 											ser2clijson.setStatus(4);// 客户端的命令执行流程完结！
 										}
 									}
 									else {
 										ser2clijson.setStatus(4);// 客户端的命令执行流程完结！
-									}*/
+									}
 								//}
 								
 								logger.info("send to Client Ret"+obj);
@@ -905,11 +893,11 @@ public class Tut5Receiver implements ReceiverInterface{
 								cmdHistoryRepository.saveAndFlush(ser2clijsonHistory);
 								obj = null;
 								
-							/*}
+							}
 							else
 							{
 								logger.error("receiveCu2AtsCiFeed: -------com_serial_num object is error-----------ci_feed.getCom_serial_num(): "+ci_feed.getCom_serial_num());
-							}*/
+							}
 						}
 						
 					}
@@ -934,13 +922,13 @@ public class Tut5Receiver implements ReceiverInterface{
 		}
 	}
 	
-	/**
+	*//**
 	 * 密码确认反馈监听
 	 * @param in
 	 * @throws JsonParseException
 	 * @throws JsonMappingException
 	 * @throws IOException
-	 */
+	 *//*
 	@RabbitListener(queues = "#{cu2atsPwdConfirmFeedQueue.name}")
 	public void receiveCu2AtsPwdConfirmFeed(String in) throws JsonParseException, JsonMappingException, IOException
 	{
@@ -951,7 +939,7 @@ public class Tut5Receiver implements ReceiverInterface{
 		logger.info("send to Client PwdConfirmFeed "+"{\"stationControl\":"+in+"}");
 		in = null;
 		
-		/*ObjectMapper mapper = new ObjectMapper();
+		ObjectMapper mapper = new ObjectMapper();
 		mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
 		RecvPassword recvpassword = mapper.readValue(in,RecvPassword.class);
 		CLient2serJsonCommandHistory ser2clijsonHistory = cmdHistoryRepository.findByMagicAndCmd((int)recvpassword.getCom_serial_num(), recvpassword.getFeed_type());//根据魔数和命令号来查询用户名和客户端ID
@@ -961,16 +949,16 @@ public class Tut5Receiver implements ReceiverInterface{
 			continue;
 		}
 		
-		ser2clijsonHistory.setrCuTime(new Date());*/
+		ser2clijsonHistory.setrCuTime(new Date());
 	}
 
-	/**
+	*//**
 	 * 接收CI发过来的控制模式
 	 * @param in
 	 * @throws JsonParseException
 	 * @throws JsonMappingException
 	 * @throws IOException
-	 */
+	 *//*
 	@RabbitListener(queues = "#{cu2atsModeSwitchQueue.name}")
 	public void receiveCiModeStatus(String in)
 	{
@@ -1030,13 +1018,13 @@ public class Tut5Receiver implements ReceiverInterface{
 
 	}
 	
-	/**
+	*//**
 	 * 监听CI的状态
 	 * @param in
 	 * @throws JsonParseException
 	 * @throws JsonMappingException
 	 * @throws IOException
-	 */
+	 *//*
 	@RabbitListener(queues = "#{cu2atsCiInterruptWarningQueue.name}")
 	public void receiveCiInterruptWarning(String in)
 	{
@@ -1087,14 +1075,14 @@ public class Tut5Receiver implements ReceiverInterface{
 	}
 	
 	
-	/**
+	*//**
 	 * 监听车子的状态信息
 	 * @param in
 	 * @throws JsonParseException
 	 * @throws JsonMappingException
 	 * @throws IOException
-	 */
-	/*@RabbitListener(queues = "#{ser2serTraintraceQueue.name}")
+	 *//*
+	@RabbitListener(queues = "#{ser2serTraintraceQueue.name}")
 	public void receiveTrainArriveStatus(String in)
 	{
 		logger.info("receiveTrainArriveStatus: "+in);
@@ -1138,9 +1126,9 @@ public class Tut5Receiver implements ReceiverInterface{
 			in = null;
 		}
 		
-	}*/
+	}
 
-/*	@Scheduled(fixedDelay = 2000, initialDelay = 500)
+	@Scheduled(fixedDelay = 2000, initialDelay = 500)
 	public void senderPlatformStateToClient() throws IOException {
 		
 		platformDetainState = platformDetainStateService.findByKey("PlatformState");
@@ -1177,6 +1165,7 @@ public class Tut5Receiver implements ReceiverInterface{
 			template.convertAndSend("topic.serv2cli", "serv2cli.traincontrol.model",json);
 			logger.debug("test2:"+json);
 		}
-	}*/
+	}
 	
 }
+*/
