@@ -7,6 +7,8 @@ import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.Table;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 @Entity
 @Table(name = "tb_skip_station_state")
 public class SkipStationState {
@@ -44,6 +46,25 @@ public class SkipStationState {
 	private short detainStatus;//扣车状态
 	
 	private int workstation;
+	
+	
+	/*private int dwelltime;		//停站时间
+	
+	private int setWay;			//设置方式（0，人工设置；1，自动设置）	//停站时间时  cmdParameter:[platform_id,time,setWay] //站台ID，停站时间，设置方式（0，人工设置；1，自动设置）
+								//立即发车时  cmdParameter:[platform_id,group_mun]  //站台ID，当前站台停车的车组号
+
+	public int getDwelltime() {
+		return dwelltime;
+	}
+	public void setDwelltime(int dwelltime) {
+		this.dwelltime = dwelltime;
+	}
+	public int getSetWay() {
+		return setWay;
+	}
+	public void setSetWay(int setWay) {
+		this.setWay = setWay;
+	}*/
 	
 	public long getId() {
 		return id;

@@ -265,47 +265,32 @@ public class Tut5Receiver implements ReceiverInterface{
 	{
 		ObjectMapper mapper = new ObjectMapper();
 		mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-		String json;
 		
 		try{
 			List<PlatformState> platformStateList = ats2serSkipStationStatus.getPlatformState();
 			for(PlatformState platformState:platformStateList){
 				SkipStationState skipStationState = skipStationStateService.findByPlatformId(platformState.getId());
 				
-				if(skipStationState != null){
-					//System.out.println("debug........."+ats2serSkipStationStatus.getPlatformState());
-					skipStationState.setClientnum(platformState.getClientnum());
-					skipStationState.setUsername(platformState.getUsername());
-					skipStationState.setDetainStatus((short) platformState.getState());
-					skipStationState.setWorkstation(platformState.getWorkstation());
-					//判断是否有扣车，有扣车则取消跳停
-					if(platformState.getState() == 1){
-						skipStationState.setSkipState((short) 0);
-					}
-					skipStationStateService.save(skipStationState);
-					logger.info("send to client updateSkipStationStatus exce ok .... ");
-				}
-				else{
+				if(skipStationState == null){
 					skipStationState = new SkipStationState();
-					skipStationState.setClientnum(platformState.getClientnum());
-					skipStationState.setUsername(platformState.getUsername());
-					skipStationState.setPlatformId(platformState.getId());
-					skipStationState.setDetainStatus((short) platformState.getState());
-					skipStationState.setWorkstation(platformState.getWorkstation());
-					//判断是否有扣车，有扣车则取消跳停
-					if(platformState.getState() == 1){
-						skipStationState.setSkipState((short) 0);
-					}
-					skipStationStateService.save(skipStationState);
-					logger.info("send to client updateSkipStationStatus exce ok .... ");
 				}
 				
+				skipStationState.setClientnum(platformState.getClientnum());
+				skipStationState.setUsername(platformState.getUsername());
+				skipStationState.setPlatformId(platformState.getId());
+				skipStationState.setDetainStatus((short) platformState.getState());
+				skipStationState.setWorkstation(platformState.getWorkstation());
+				// 判断是否有扣车，有扣车则取消跳停
+				if (platformState.getState() == 1) {
+					skipStationState.setSkipState((short) 0);
+				}
+				skipStationStateService.save(skipStationState);
+				logger.info("send to client updateSkipStationStatus exce ok .... ");
 			}
 		}catch (Exception e) {
 			// TODO: handle exception
 			logger.error("send to client updateSkipStationStatus exce error .... ");
 		}
-		json = null;
 	}
 	/**
 	 * 发送密码确认信息给CU
@@ -358,7 +343,7 @@ public class Tut5Receiver implements ReceiverInterface{
 		commandHistory.setCmd(mode.getStationcontrol_cmd_type());
 		commandHistory.setCmdClass(0);
 		commandHistory.setUsername(mode.getUser_name());
-		commandHistory.setMagic((int) (1000+Math.random()*(Short.MAX_VALUE*2-1000)));
+		//commandHistory.setMagic((int) (1000+Math.random()*(Short.MAX_VALUE*2-1000)));
 		
 		if(mode.getStationcontrol_cmd_type() == 171) //171为中心调度员请求转为中控
 		{
@@ -613,7 +598,12 @@ public class Tut5Receiver implements ReceiverInterface{
 		CLient2serJsonCommandHistory commandHsitory = new CLient2serJsonCommandHistory();
 		BeanUtils.copyProperties(cli2serjson, commandHsitory);
 		cmdHistoryRepository.save(commandHsitory);
-		cmdRepository.save(cli2serjson);
+		//cmdRepository.save(cli2serjson);
+		
+		//只暂时保存需要CI反馈的命令信息
+		if(cli2serjson.getCmd() <= 39){
+			cmdRepository.save(cli2serjson);
+		}
 		
 		header_info =null;
 		msg_header = null;
@@ -762,7 +752,7 @@ public class Tut5Receiver implements ReceiverInterface{
 								continue;
 							}
 							
-							CLient2serJsonCommandHistory ser2clijsonHistory = cmdHistoryRepository.findByMagicAndCmdAndRClientTimeAndClientNum((int)ci_feed.getCom_serial_num(), ci_feed.getFeed_type(), ser2clijson.getrClientTime(), ser2clijson.getClientNum());//根据魔数和命令号来查询用户名和客户端ID
+							CLient2serJsonCommandHistory ser2clijsonHistory = cmdHistoryRepository.findByMagicAndCmdAndSCuTimeAndClientNum((int)ci_feed.getCom_serial_num(), ci_feed.getFeed_type(), ser2clijson.getsCuTime(), ser2clijson.getClientNum());//根据魔数和命令号来查询用户名和客户端ID
 							
 							ser2clijson.setrCuTime(new Date());
 							ser2clijsonHistory.setrCuTime(new Date());
@@ -786,45 +776,31 @@ public class Tut5Receiver implements ReceiverInterface{
 									if(ci_feed.getFeed_status() == 1 && tempcmd != null) //等于1表示扣车成功
 									{
 										SkipStationState skipStationState = skipStationStateService.findByPlatformId(tempcmd.getCmd_parameter().get(0));
-										String value = ""; 
-										if(skipStationState != null)
-										{
-											skipStationState.setClientnum(tempcmd.getClient_num());
-											skipStationState.setUsername(tempcmd.getUser_name());
-											skipStationState.setWorkstation(tempcmd.getWorkstation());
-											if(ci_feed.getFeed_type() == 28)
-											{
-												skipStationState.setDetainStatus((short) 1);//设置扣车状态
-												skipStationState.setSkipState((short) 0);//取消跳停
-											}
-											if(ci_feed.getFeed_type() == 29)
-											{
-												skipStationState.setDetainStatus((short) 0);//取消扣车状态
-											}
-											skipStationStateService.save(skipStationState);
-											logger.info("receiveCu2AtsCiFeed: ----- save feed_status is 0x01 and type is 28 to Db -----");
-										}
-										else//初始化数据库数据
+										if(skipStationState == null)//初始化数据库数据
 										{
 											skipStationState = new SkipStationState();
-											skipStationState.setClientnum(tempcmd.getClient_num());
-											skipStationState.setUsername(tempcmd.getUser_name());
 											skipStationState.setPlatformId(tempcmd.getCmd_parameter().get(0));
-											skipStationState.setWorkstation(tempcmd.getWorkstation());
-											if(ci_feed.getFeed_type() == 28)
-											{
-												skipStationState.setDetainStatus((short) 1);//设置扣车状态
-												skipStationState.setSkipState((short) 0);//取消跳停
-											}
-											if(ci_feed.getFeed_type() == 29)
-											{
-												skipStationState.setDetainStatus((short) 0);//取消扣车状态
-											}
-											skipStationStateService.save(skipStationState);
 											logger.info("receiveCu2AtsCiFeed: -----initialize key PlatformState and type is 28 to Db ----");
 											
 										}
-										value = null;
+										skipStationState.setClientnum(tempcmd.getClient_num());
+										skipStationState.setUsername(tempcmd.getUser_name());
+										skipStationState.setWorkstation(tempcmd.getWorkstation());
+										if(ci_feed.getFeed_type() == 28)
+										{
+											skipStationState.setDetainStatus((short) 1);//设置扣车状态
+											skipStationState.setSkipState((short) 0);//取消跳停
+										}
+										if(ci_feed.getFeed_type() == 29)
+										{
+											skipStationState.setDetainStatus((short) 0);//取消扣车状态
+										}
+										skipStationStateService.save(skipStationState);
+										logger.info("receiveCu2AtsCiFeed: ----- save feed_status is 0x01 and type is {} to Db -----", skipStationState.getDetainStatus());
+										
+										//设置扣车、取消扣车成功，转发给进路办理
+										template.convertAndSend("topic.ats.trainroute", "ats.trainroute.command_feedback", omap.writeValueAsString(ret));
+										logger.info("send to trainroute platform detain status "+omap.writeValueAsString(ret));
 									}
 									tempcmd = null;
 								}
@@ -905,6 +881,10 @@ public class Tut5Receiver implements ReceiverInterface{
 								cmdHistoryRepository.saveAndFlush(ser2clijsonHistory);
 								obj = null;
 								
+								//0xff:延时等待
+								if(ci_feed.getFeed_status() != 0xff){
+									cmdRepository.delete(ser2clijson);//删除已执行完成的命令
+								}
 							/*}
 							else
 							{
@@ -992,7 +972,7 @@ public class Tut5Receiver implements ReceiverInterface{
 					{
 						mode.setCi_mode(0);//中心控制
 						ciModeService.save(mode);
-						logger.info("amqpCiError.getCi_msg_error1().getCiMode() == 85 and mode.getCi_mode() == 3");
+						//logger.info("amqpCiError.getCi_msg_error1().getCiMode() == 85 and mode.getCi_mode() == 3");
 					}
 					//CI上电更新控制模式为非常站控
 					if(amqpCiError.getCi_msg_error1().getCiMode() == 204)//CI刚上电，如果收到为非常站控，把状态改为非常站控 0xcc
@@ -1070,7 +1050,7 @@ public class Tut5Receiver implements ReceiverInterface{
 					tempmap = null;
 					listmode = null;
 					ciMode = null;
-					logger.info("receiveCiInterruptWarning: "+in);
+					//logger.info("receiveCiInterruptWarning: "+in);
 				}
 			}
 			

@@ -16,4 +16,8 @@ public interface Client2serJsonCommandRepository   extends JpaRepository<CLient2
 
 	CLient2serJsonCommand findTop1ByOrderByIdDesc();
 
+	List<CLient2serJsonCommand> findBySCuTimeLessThan(Date date);
+
+	List<CLient2serJsonCommand> findByRetNotAndSCuTimeLessThan(int ret, Date date);
+
 }
