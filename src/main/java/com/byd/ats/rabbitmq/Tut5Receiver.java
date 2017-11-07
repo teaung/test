@@ -221,7 +221,7 @@ public class Tut5Receiver implements ReceiverInterface{
 						CLient2serJsonCommandHistory commandHistory = new CLient2serJsonCommandHistory();
 						commandHistory.setrClientTime(new Date());
 						commandHistory.setJson(in);
-						sendMode2Client(in,mode,commandHistory);
+						sendMode2Client(mode,commandHistory);
 					}
 				}
 				if(tempmap.get("cmd_class").toString().equals("ATSsev"))//转发给自动进路办理模块
@@ -333,75 +333,46 @@ public class Tut5Receiver implements ReceiverInterface{
 	 * @param contrcmd
 	 * @throws JsonProcessingException
 	 */
-	public void sendMode2Client(String in,AtsModeSwitch mode, CLient2serJsonCommandHistory commandHistory) throws JsonProcessingException
+	public void sendMode2Client(AtsModeSwitch mode, CLient2serJsonCommandHistory commandHistory) throws JsonProcessingException
 	{
 		ObjectMapper mapper = new ObjectMapper();
 		mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
 		
-		//-------myAdd-------
-		commandHistory.setClientNum(mode.getClient_num());
-		commandHistory.setCmd(mode.getStationcontrol_cmd_type());
-		commandHistory.setCmdClass(0);
-		commandHistory.setUsername(mode.getUser_name());
 		//commandHistory.setMagic((int) (1000+Math.random()*(Short.MAX_VALUE*2-1000)));
 		
 		if(mode.getStationcontrol_cmd_type() == 171) //171为中心调度员请求转为中控
 		{
-			String obj = "{\"stationControl\":"+in+"}";
-			template.convertAndSend("topic.serv2cli", "serv2cli.traincontrol.model", obj);
-			logger.info("Sent StationControl to [ats-client]: "+mode.getStationcontrol_cmd_type() +  obj + " ");
+			sendCImode2cli(mode); //切换的CI模式信息发给客户端
 		
-			commandHistory.setsClientTime(new Date());
-			cmdHistoryRepository.save(commandHistory);
+			setHisCmdSCliTime(mode, commandHistory); //保存发送给客户端的时间
 		}
 		if(mode.getStationcontrol_cmd_type() == 172)
 		{
 			if(mode.getCurrent_mode() == mode.getModified_mode())
 			{
-				String obj = "{\"stationControl\":"+in+"}";
-				template.convertAndSend("topic.serv2cli", "serv2cli.traincontrol.model", obj);
-				logger.info("Sent StationControl to [ats-client]: "+mode.getStationcontrol_cmd_type() +  obj + " ");
+				sendCImode2cli(mode); //切换的CI模式信息发给客户端
 			
-				commandHistory.setsClientTime(new Date());
-				cmdHistoryRepository.save(commandHistory);
+				setHisCmdSCliTime(mode, commandHistory); //保存发送给客户端的时间
 			}
 			if(mode.getCurrent_mode() != mode.getModified_mode() && mode.getModified_mode() ==1)
 			{
-				List<CiMode> listmode = ciModeService.findAll();
 				if(getCi_mode() == 85)//ATS控模式
 				{
+					updateCImode(1);//设置控制模式为站控
 					
-					if(listmode.size() > 0)
-					{
-						ciMode = listmode.get(0);
-						ciMode.setCi_mode(1); //设置控制模式为站控
-						ciModeService.save(ciMode);
-						ciMode = null;
-					}
-					//控制模式转换成功后发送成功消息
-					String obj = "{\"stationControl\":"+in+"}";
-					template.convertAndSend("topic.serv2cli", "serv2cli.traincontrol.model", obj);
-					logger.info("Sent StationControl to [ats-client]: "+mode.getStationcontrol_cmd_type() +  obj + " ");
+					sendCImode2cli(mode); //切换的CI模式信息发给客户端
 
-					commandHistory.setsClientTime(new Date());
-					cmdHistoryRepository.save(commandHistory);
+					setHisCmdSCliTime(mode, commandHistory); //保存发送给客户端的时间
 				}
 				if(getCi_mode() == 204)
 				{
 					mode.setModified_mode(mode.getCurrent_mode());
-					if(listmode.size() > 0)
-					{
-						ciMode = listmode.get(0);
-						ciMode.setCi_mode(2);//设置控制模式为非常站控
-						ciModeService.save(ciMode);
-						ciMode = null;
-					}
-					String obj = "{\"stationControl\":"+mapper.writeValueAsString(mode)+"}";
-					template.convertAndSend("topic.serv2cli", "serv2cli.traincontrol.model", obj);
-					logger.info("Sent StationControl to [ats-client]: "+mode.getStationcontrol_cmd_type() +  obj + " ");
+					
+					updateCImode(2);//设置控制模式为非常站控
+					
+					sendCImode2cli(mode); //切换的CI模式信息发给客户端
 				
-					commandHistory.setsClientTime(new Date());
-					cmdHistoryRepository.save(commandHistory);
+					setHisCmdSCliTime(mode, commandHistory); //保存发送给客户端的时间
 				}
 			}
 		}
@@ -409,49 +380,29 @@ public class Tut5Receiver implements ReceiverInterface{
 		{
 			if(mode.getWay() == 0)//way==0代表车站请求转站控
 			{
-				String obj = "{\"stationControl\":"+in+"}";
-				template.convertAndSend("topic.serv2cli", "serv2cli.traincontrol.model", obj);
-				logger.info("Sent StationControl to [ats-client]: "+mode.getStationcontrol_cmd_type() +  obj + " ");
+				sendCImode2cli(mode); //切换的CI模式信息发给客户端
 				
-				commandHistory.setsClientTime(new Date());
-				cmdHistoryRepository.save(commandHistory);
+				setHisCmdSCliTime(mode, commandHistory); //保存发送给客户端的时间
 			}
 			if(mode.getWay() == 1)//way==1代表车站抢权
 			{
-				List<CiMode> listmode = ciModeService.findAll();
 				if(getCi_mode() == 85)//ATS控
 				{
-					if(listmode.size() > 0)
-					{
-						ciMode = listmode.get(0);
-						ciMode.setCi_mode(1); //设置控制模式为站控
-						ciModeService.save(ciMode);
-						ciMode = null;
-					}
-					//控制模式转换成功后发送成功消息
-					String obj = "{\"stationControl\":"+in+"}";
-					template.convertAndSend("topic.serv2cli", "serv2cli.traincontrol.model", obj);
-					logger.info("Sent StationControl to [ats-client]: "+mode.getStationcontrol_cmd_type() +  obj + " ");
+					updateCImode(1); //设置控制模式为站控
+					
+					sendCImode2cli(mode); //切换的CI模式信息发给客户端
 				
-					commandHistory.setsClientTime(new Date());
-					cmdHistoryRepository.save(commandHistory);
+					setHisCmdSCliTime(mode, commandHistory); //保存发送给客户端的时间
 				}
 				if(getCi_mode() == 204)
 				{
 					mode.setModified_mode(mode.getCurrent_mode());
-					if(listmode.size() > 0)
-					{
-						ciMode = listmode.get(0);
-						ciMode.setCi_mode(2);//设置控制模式为非常站控
-						ciModeService.save(ciMode);
-						ciMode = null;
-					}
-					String obj = "{\"stationControl\":"+mapper.writeValueAsString(mode)+"}";
-					template.convertAndSend("topic.serv2cli", "serv2cli.traincontrol.model", obj);
-					logger.info("Sent StationControl to [ats-client]: "+mode.getStationcontrol_cmd_type() +  obj + " ");
+					
+					updateCImode(2); //设置控制模式为非常站控
+					
+					sendCImode2cli(mode); //切换的CI模式信息发给客户端
 				
-					commandHistory.setsClientTime(new Date());
-					cmdHistoryRepository.save(commandHistory);
+					setHisCmdSCliTime(mode, commandHistory); //保存发送给客户端的时间
 				}
 			}
 		}
@@ -459,92 +410,110 @@ public class Tut5Receiver implements ReceiverInterface{
 		{
 			if(mode.getCurrent_mode() == mode.getModified_mode())
 			{
-				String obj = "{\"stationControl\":"+in+"}";
-				template.convertAndSend("topic.serv2cli", "serv2cli.traincontrol.model", obj);
-				logger.info("Sent StationControl to [ats-client] " +  obj + " ");
+				sendCImode2cli(mode); //切换的CI模式信息发给客户端
 			
-				commandHistory.setsClientTime(new Date());
-				cmdHistoryRepository.save(commandHistory);
+				setHisCmdSCliTime(mode, commandHistory); //保存发送给客户端的时间
 			}
 			//非常站控转中控
 			if(mode.getCurrent_mode() != mode.getModified_mode() && mode.getCurrent_mode() == 2 && mode.getModified_mode() == 0)
 			{
-				Client2serCommand modecmd = new Client2serCommand();
-				modecmd.setClient_num(mode.getClient_num());
-				modecmd.setCmd_class(mode.getCmd_class());
-				List<Integer> listmode = new ArrayList<Integer>();
-				listmode.add(mode.getCi_num());
-				listmode.add(0xaa);//参数为中控模式
-				modecmd.setCmd_parameter(listmode);
-				modecmd.setStationcontrol_cmd_type(0x23);//控制模式指令
-				modecmd.setUser_name(mode.getUser_name());
-				send2CI(modecmd);
-				modecmd = null;
-				
-				//commandHistory.setCmdClass(1);
-				//commandHistory.setsCuTime(new Date());
-				//cmdHistoryRepository.save(commandHistory);
+				sendCImode2CI(mode, 0xaa);//参数0xaa为中控模式
 			}
 			//非常站控转站控
 			if(mode.getCurrent_mode() != mode.getModified_mode() && mode.getCurrent_mode() ==2 && mode.getModified_mode() == 1)
 			{
-				Client2serCommand modecmd = new Client2serCommand();
-				modecmd.setClient_num(mode.getClient_num());
-				modecmd.setCmd_class(mode.getCmd_class());
-				List<Integer> listmode = new ArrayList<Integer>();
-				listmode.add(mode.getCi_num());
-				listmode.add(0x55);//参数为站控模式
-				modecmd.setCmd_parameter(listmode);
-				modecmd.setStationcontrol_cmd_type(0x23);//控制模式指令
-				modecmd.setUser_name(mode.getUser_name());
-				send2CI(modecmd);
-				modecmd = null;
-				
-				//commandHistory.setCmdClass(1);
-				//commandHistory.setsCuTime(new Date());
-				//cmdHistoryRepository.save(commandHistory);
+				sendCImode2CI(mode, 0x55);//参数0xaa为站控模式
 			}
 			//从站控转为中控
 			if(mode.getCurrent_mode() != mode.getModified_mode() && mode.getCurrent_mode() ==1 && mode.getModified_mode() == 0)
 			{
-				List<CiMode> listmode = ciModeService.findAll();
 				if(getCi_mode() == 85)//ATS控
 				{
-					if(listmode.size() > 0)
-					{
-						ciMode = listmode.get(0);
-						ciMode.setCi_mode(0); //设置控制模式为中控
-						ciModeService.save(ciMode);
-						ciMode = null;
-					}
-					//控制模式转换成功后发送成功消息
-					String obj = "{\"stationControl\":"+in+"}";
-					template.convertAndSend("topic.serv2cli", "serv2cli.traincontrol.model", obj);
-					logger.info("Sent StationControl to [ats-client]: "+mode.getStationcontrol_cmd_type() +  obj + " ");
+					updateCImode(0); //设置控制模式为中控
+					
+					sendCImode2cli(mode); //切换的CI模式信息发给客户端
 				
-					commandHistory.setsClientTime(new Date());
-					cmdHistoryRepository.save(commandHistory);
+					setHisCmdSCliTime(mode, commandHistory); //保存发送给客户端的时间
 				}
 				if(getCi_mode() == 204) //非常站控
 				{
 					mode.setModified_mode(mode.getCurrent_mode());//把当前模式的值赋值给更新，即表示失败
-					if(listmode.size() > 0)
-					{
-						ciMode = listmode.get(0);
-						ciMode.setCi_mode(2);//设置控制模式为非常站控
-						ciModeService.save(ciMode);
-						ciMode = null;
-					}
-					String obj = "{\"stationControl\":"+mapper.writeValueAsString(mode)+"}";
-					template.convertAndSend("topic.serv2cli", "serv2cli.traincontrol.model", obj);
-					logger.info("Sent StationControl to [ats-client]: "+mode.getStationcontrol_cmd_type() +  obj + " ");
+					
+					updateCImode(2); //设置控制模式为非常站控
+					
+					sendCImode2cli(mode); //切换的CI模式信息发给客户端
 				
-					commandHistory.setsClientTime(new Date());
-					cmdHistoryRepository.save(commandHistory);
+					setHisCmdSCliTime(mode, commandHistory); //保存发送给客户端的时间
 				}
 			}
 		}
 		mode = null;
+	}
+
+	/**
+	 * 切换CI模式信息发给CI
+	 * @param mode CI模式切换信息
+	 * @param ciNum CI模式编码
+	 * @throws JsonProcessingException
+	 */
+	private void sendCImode2CI(AtsModeSwitch mode, int ciNum) throws JsonProcessingException {
+		Client2serCommand modecmd = new Client2serCommand();
+		modecmd.setClient_num(mode.getClient_num());
+		modecmd.setCmd_class(mode.getCmd_class());
+		List<Integer> listmode = new ArrayList<Integer>();
+		listmode.add(mode.getCi_num());
+		listmode.add(ciNum);//参数为中控模式
+		modecmd.setCmd_parameter(listmode);
+		modecmd.setStationcontrol_cmd_type(0x23);//控制模式指令
+		modecmd.setUser_name(mode.getUser_name());
+		send2CI(modecmd);
+		modecmd = null;
+	}
+
+	/**
+	 * 保存发送给客户端的时间
+	 * @param mode 切换CI模式信息
+	 * @param commandHistory 命令记录
+	 */
+	private void setHisCmdSCliTime(AtsModeSwitch mode, CLient2serJsonCommandHistory commandHistory) {
+		commandHistory.setClientNum(mode.getClient_num());
+		commandHistory.setCmd(mode.getStationcontrol_cmd_type());
+		commandHistory.setCmdClass(0);
+		commandHistory.setUsername(mode.getUser_name());
+		commandHistory.setsClientTime(new Date());
+		cmdHistoryRepository.save(commandHistory);
+	}
+
+	/**
+	 * 切换的CI模式信息发给客户端
+	 * @param mode CI模式信息
+	 */
+	private void sendCImode2cli(AtsModeSwitch mode) {
+		ObjectMapper mapper = new ObjectMapper();
+		String obj = null;
+		try {
+			obj = "{\"stationControl\":"+mapper.writeValueAsString(mode)+"}";
+		} catch (JsonProcessingException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		template.convertAndSend("topic.serv2cli", "serv2cli.traincontrol.model", obj);
+		logger.info("Sent StationControl to [ats-client]: "+mode.getStationcontrol_cmd_type() +  obj + " ");
+	}
+
+	/**
+	 * 更新CI模式
+	 * @param CImode 新的CI模式  0:中控, 1:站控, 2:非常站控
+	 */
+	private void updateCImode(int CImode) {
+		List<CiMode> listmode = ciModeService.findAll();
+		if(listmode.size() > 0)
+		{
+			ciMode = listmode.get(0);
+			ciMode.setCi_mode(CImode); //设置控制模式为站控
+			ciModeService.save(ciMode);
+			ciMode = null;
+		}
 	}
 
 	/**
@@ -931,17 +900,6 @@ public class Tut5Receiver implements ReceiverInterface{
 		logger.info("send to Client PwdConfirmFeed "+"{\"stationControl\":"+in+"}");
 		in = null;
 		
-		/*ObjectMapper mapper = new ObjectMapper();
-		mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-		RecvPassword recvpassword = mapper.readValue(in,RecvPassword.class);
-		CLient2serJsonCommandHistory ser2clijsonHistory = cmdHistoryRepository.findByMagicAndCmd((int)recvpassword.getCom_serial_num(), recvpassword.getFeed_type());//根据魔数和命令号来查询用户名和客户端ID
-		
-		if (ser2clijsonHistory == null) {
-			logger.info("[CIfeed] Can't find this feed's command ({}, {}), so discard!", recvpassword.getFeed_type(), recvpassword.getCom_serial_num());
-			continue;
-		}
-		
-		ser2clijsonHistory.setrCuTime(new Date());*/
 	}
 
 	/**
@@ -1044,9 +1002,6 @@ public class Tut5Receiver implements ReceiverInterface{
 						skipStationState.setDetainStatus((short) 0);
 						skipStationStateService.save(skipStationState);
 					}
-					tempmap = null;
-					listmode = null;
-					ciMode = null;
 					tempmap = null;
 					listmode = null;
 					ciMode = null;
