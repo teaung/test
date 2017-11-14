@@ -10,7 +10,9 @@ import java.util.Date;
  */
 public class ATSAlarmEvent {
 
-	private int alarmCode;//告警编码
+	private int alarmCode;	//告警编码 	6200  CI与CU通信中断
+    						//		6100  VOBC与CU通信中断
+    						//		6900  ATS与CU通讯中断
 	private String timeString;//时间
 	private Long deviceId;//设备ID
 	private String deviceInfo;//设备信息
@@ -63,5 +65,9 @@ public class ATSAlarmEvent {
 
 	public void setLocation(String location) {
 		this.location = location;
+	}
+	
+	public ATSAlarmEvent(){
+		
 	}
 }

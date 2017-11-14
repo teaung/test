@@ -24,6 +24,9 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
 import org.springframework.web.client.RestTemplate;
+
+import com.byd.ats.protocol.RabbConstant;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.web.client.RestTemplateBuilder;
@@ -76,7 +79,12 @@ public class Tut5Config {
 	 	 	return new CistatusReceiver(receiver());
 		}*/
 
-
+		@Bean
+		public Queue ciCmdQueue() {
+			return new AnonymousQueue();
+			//return new Queue("q.traincontrol.ci.cmd");
+		}
+		
 		@Bean
 		public Queue cli2ServTrainControlQueue() {
 			//return new AnonymousQueue();
@@ -85,32 +93,32 @@ public class Tut5Config {
 
 		@Bean
 		public Queue cu2atsCiFeedQueue() {
-			//return new AnonymousQueue();
-			return new Queue("q.traincontrol.cifeed");
+			return new AnonymousQueue();
+			//return new Queue("q.traincontrol.cifeed");
 		}
 		
 		@Bean
 		public Queue cu2atsPwdConfirmFeedQueue() {
-			//return new AnonymousQueue();
-			return new Queue("q.traincontrol.pwdconfirmfeed");
+			return new AnonymousQueue();
+			//return new Queue("q.traincontrol.pwdconfirmfeed");
 		}
 		
 		@Bean
 		public Queue routeAttributeQueue() {
-			//return new AnonymousQueue();
-			return new Queue("q.traincontrol.routeAttribute");
+			return new AnonymousQueue();
+			//return new Queue("q.traincontrol.routeAttribute");
 		}
 		
 		@Bean
 		public Queue cu2atsModeSwitchQueue() {
-			//return new AnonymousQueue();
-			return new Queue("q.traincontrol.cu2atsModeSwitch");
+			return new AnonymousQueue();
+//			return new Queue("q.traincontrol.cu2atsModeSwitch");
 		}
 		
 		@Bean
 		public Queue cu2atsCiInterruptWarningQueue() {
-			//return new AnonymousQueue();
-			return new Queue("q.traincontrol.cu2atsCiInterruptWarning");
+			return new AnonymousQueue();
+			//return new Queue("q.traincontrol.cu2atsCiInterruptWarning");
 		}
 		
 		/*@Bean
@@ -118,14 +126,31 @@ public class Tut5Config {
 			//return new AnonymousQueue();
 			return new Queue("q.traincontrol.trainArriveStatus");
 		}*/
+		
+		@Bean
+		public Queue cAStatusQueue() {
+			return new AnonymousQueue();
+			//return new Queue("q.traincontrol.caStatus");
+		}
+		
+		@Bean
+		public Binding bindingCaStatus(@Qualifier("topicCU2ATS") TopicExchange topic, Queue cAStatusQueue) {
+			return BindingBuilder.bind(cAStatusQueue).to(topic).with(RabbConstant.RABB_RK_CA_STATUS);
+		}
+		
+		@Bean
+		public Binding bindingCiCmd(@Qualifier("topicATS2CU") TopicExchange topic, Queue ciCmdQueue) {
+			return BindingBuilder.bind(ciCmdQueue).to(topic).with("ats2cu.ci.cmd");
+		}
+		
 		@Bean
 		public Binding binding1a(@Qualifier("topicCli2Serv") TopicExchange topic, Queue cli2ServTrainControlQueue) {
 			return BindingBuilder.bind(cli2ServTrainControlQueue).to(topic).with("cli2serv.traincontrol.command");
 		}
 		
 		@Bean
-		public Binding binding1c(@Qualifier("topicCU2ATS") TopicExchange topic, Queue cu2atsCiFeedQueue) {
-			return BindingBuilder.bind(cu2atsCiFeedQueue).to(topic).with("cu2ats.ci.command_feedback");
+		public Binding binding1c(@Qualifier("topicCU2ATS") TopicExchange topic, Queue cu2atsCiFeedQueue) {//"cu2ats.ci.command_feedback"
+			return BindingBuilder.bind(cu2atsCiFeedQueue).to(topic).with(RabbConstant.RABB_RK_CA_FEEDBACK);
 		}
 		
 		
@@ -141,7 +166,7 @@ public class Tut5Config {
 		
 		@Bean
 		public Binding binding1h(@Qualifier("topicCU2ATS") TopicExchange topic,Queue cu2atsCiInterruptWarningQueue) {
-			return BindingBuilder.bind(cu2atsCiInterruptWarningQueue).to(topic).with("cu2ats.cu.warning");
+			return BindingBuilder.bind(cu2atsCiInterruptWarningQueue).to(topic).with(RabbConstant.RABB_RK_CU_ALERT);
 		}
 
 		/*@Bean

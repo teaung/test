@@ -1,4 +1,4 @@
-/*package com.byd.ats.controller;
+package com.byd.ats.controller;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -29,11 +29,11 @@ public class DwellTimeController {
 	@Autowired
 	private SkipStationStateService skipStationStateService;
 	
-	*//**
+	/**
 	 * 设置站台停站时间
 	 * @param json 设置命令JSON
 	 * @return
-	 *//*
+	 */
 	@RequestMapping(value = "/setTime")
 //	public @ResponseBody String setDwellTime(@RequestParam String json){
 	public @ResponseBody String setDwellTime(@RequestParam Integer platformId){
@@ -88,20 +88,20 @@ public class DwellTimeController {
 		} catch (Exception e) {
 			// TODO: handle exception
 			logger.error("[setDwellTime] save error.");
-			backDwellTime2AppData.setResult(false);
-			backDwellTime2AppData.setCode("设置失败");
+			backDwellTime2AppData = new BackDwellTime2AppData(dwellTimeCommand.getRuntaskCmdType(), false, "设置失败",
+					dwellTimeCommand.getPlatformId(), dwellTimeCommand.getTime(), dwellTimeCommand.getSetWay());
+
 		}
 		// --------------------返回结果给客户端----------------------------
 		result = "{\"tgi_msg\":" + backDwellTime2AppData.toString() + "}";
-	
 		logger.info("[setDwellTime]--sender--" + result);
 		return result;
 	}
 
-	*//**
+	/**
 	 * 获取所有站台停站时间
 	 * @return
-	 *//*
+	 */
 	@RequestMapping(value = "/all")
 	public @ResponseBody String allDwellTime() throws JsonParseException, JsonMappingException, IOException{
 		//LOG.info("---[R]--getRuntaskAllCommand--");
@@ -124,11 +124,11 @@ public class DwellTimeController {
 		return result;
 	}
 	
-	*//**
+	/**
 	 * 获取站台停站时间
 	 * @param platformId 站台ID
 	 * @return
-	 *//*
+	 */
 	@RequestMapping(value="/info", method=RequestMethod.GET)
 	public String getDwellTime(@RequestParam(value="platformId") Integer platformId)
 	{
@@ -145,4 +145,3 @@ public class DwellTimeController {
 		return null;
 	}
 }
-*/

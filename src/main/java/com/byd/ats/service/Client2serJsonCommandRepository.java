@@ -20,4 +20,6 @@ public interface Client2serJsonCommandRepository   extends JpaRepository<CLient2
 
 	List<CLient2serJsonCommand> findByRetNotAndSCuTimeLessThan(int ret, Date date);
 
+	CLient2serJsonCommand findByCmd(int feedType);
+
 }

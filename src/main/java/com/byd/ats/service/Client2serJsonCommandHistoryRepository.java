@@ -17,4 +17,6 @@ public interface Client2serJsonCommandHistoryRepository   extends JpaRepository<
 	CLient2serJsonCommandHistory findByMagicAndCmdAndSCuTimeAndClientNum(int magic, int cmd, Date getsCuTime,
 			int clientNum);
 
+	CLient2serJsonCommandHistory findByCmdAndSCuTimeAndClientNum(int feedType, Date getsCuTime, int clientNum);
+
 }

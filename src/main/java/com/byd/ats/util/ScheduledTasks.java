@@ -16,6 +16,7 @@ import com.byd.ats.entity.ATSAlarmEvent;
 import com.byd.ats.entity.AtsModeSwitch;
 import com.byd.ats.entity.CLient2serJsonCommand;
 import com.byd.ats.entity.CLient2serJsonCommandHistory;
+import com.byd.ats.entity.Cli2CuCmd;
 import com.byd.ats.entity.Client2serCommand;
 import com.byd.ats.entity.Ret2ClientResult;
 import com.byd.ats.service.Client2serJsonCommandHistoryRepository;
@@ -75,9 +76,9 @@ public class ScheduledTasks{
     			cmdHistoryRepository.saveAndFlush(cmdHostory);
     			
     			//将执行超时的命令信息反馈转发给客户端
-    			Client2serCommand mode = null;
+    			Cli2CuCmd Cli2CuCmd = null;
 				try {
-					mode = mapper.readValue(cmd.getJson(), Client2serCommand.class);
+					Cli2CuCmd = mapper.readValue(cmd.getJson(), Cli2CuCmd.class);
 				} catch (IOException e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
@@ -87,7 +88,7 @@ public class ScheduledTasks{
 				ret.setUser_name(cmdHostory.getUsername());
 				ret.setResoult(404);
 				ret.setStationcontrol_cmd_type(cmdHostory.getCmd());
-				ret.setCmd_parameter(mode.getCmd_parameter().get(0));//轨道ID
+				ret.setCmd_parameter(Cli2CuCmd.getCuCmdParam().getDevId());//轨道ID
 				ret.setCountdownTime(0);
 				ret.setWorkstation(cmdHostory.getWorkstation());
 				String obj = null;

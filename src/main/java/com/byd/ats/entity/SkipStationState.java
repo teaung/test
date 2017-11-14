@@ -48,7 +48,7 @@ public class SkipStationState {
 	private int workstation;
 	
 	
-	/*private int dwelltime;		//停站时间
+	private int dwelltime;		//停站时间
 	
 	private int setWay;			//设置方式（0，人工设置；1，自动设置）	//停站时间时  cmdParameter:[platform_id,time,setWay] //站台ID，停站时间，设置方式（0，人工设置；1，自动设置）
 								//立即发车时  cmdParameter:[platform_id,group_mun]  //站台ID，当前站台停车的车组号
@@ -64,7 +64,7 @@ public class SkipStationState {
 	}
 	public void setSetWay(int setWay) {
 		this.setWay = setWay;
-	}*/
+	}
 	
 	public long getId() {
 		return id;
