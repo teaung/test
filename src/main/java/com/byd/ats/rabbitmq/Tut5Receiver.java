@@ -1,18 +1,3 @@
-/*
- * Copyright 2015 the original author or authors.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
 package com.byd.ats.rabbitmq;
 
 import java.io.IOException;
@@ -32,32 +17,21 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.client.RestTemplate;
 
 import com.byd.ats.entity.ATSAlarmEvent;
-import com.byd.ats.entity.AmqpCiFeed;
-import com.byd.ats.entity.AodArriveInfo;
 import com.byd.ats.entity.AodRet;
-import com.byd.ats.entity.Ats2ciMsgComm;
-import com.byd.ats.entity.Ats2serSkipStationStatus;
-import com.byd.ats.entity.AtsAutoTrigger;
 import com.byd.ats.entity.AtsModeSwitch;
-import com.byd.ats.entity.AtsMsgCommand;
 import com.byd.ats.entity.CLient2serJsonCommand;
 import com.byd.ats.entity.CLient2serJsonCommandHistory;
 import com.byd.ats.entity.CiMode;
 import com.byd.ats.entity.Cli2CuCmd;
 import com.byd.ats.entity.Client2serCommand;
-import com.byd.ats.entity.Client2serPwdCommand;
 import com.byd.ats.entity.CmdParam;
 import com.byd.ats.entity.Cu2AtsCiFeed;
-import com.byd.ats.entity.HeaderInfo;
-import com.byd.ats.entity.MsgHeader;
 import com.byd.ats.entity.PlatformState;
 import com.byd.ats.entity.Ret2ClientResult;
-import com.byd.ats.entity.SendPassword;
 import com.byd.ats.entity.SkipStationState;
 import com.byd.ats.service.CiModeService;
 import com.byd.ats.service.Client2serJsonCommandHistoryRepository;
 import com.byd.ats.service.Client2serJsonCommandRepository;
-import com.byd.ats.service.PlatformDetainStateService;
 import com.byd.ats.service.SkipStationStateService;
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.core.JsonParser;
@@ -95,36 +69,15 @@ public class Tut5Receiver implements ReceiverInterface{
 /*	@Autowired
 	RedisService redisService;*/
 	
-	private String ats2cicmdKey= "ats2cu.ci.command";
-	private String ats2cistaKey = "ats2cu.ci.ats_status";
-	//public ObjectMapper mapper = new ObjectMapper();
-//	private Ats2ciMsgComm cimsg=null;
-//	private HeaderInfo header_info=null;
-//	private MsgHeader msg_header=null;
-//	private AtsMsgCommand msgcmd =null;
-	//private CLient2serJsonCommand ser2clijson = null;
-	//private CLient2serJsonCommand cli2serjson = null;
-	//private Client2serCommand cmd = null;
 	Cli2CuCmd cli2CuCmd = null;
-	private Ats2serSkipStationStatus ats2serSkipStationStatus = null;
-	private Client2serPwdCommand pwdcmd = null;
 	private AtsModeSwitch mode = null;
-	//private AmqpCiFeed ciFeed = null;
-	private Ret2ClientResult ret = null;
-	private AtsAutoTrigger autocmd;
 	private List<PlatformState> pstateArray = new ArrayList<PlatformState>();
 	private List<PlatformState> skipStationArray = new ArrayList<PlatformState>();
-	//private PlatformDetainState platformDetainState = null;
 	private int ci_mode = -1;
 	private Lock lock = new ReentrantLock();  // 注意这个地方:lock被声明为成员变量
-//	private AmqpCiError amqpCiError = null;
 	private AppDataCAFault ciStatus = null;
 	private CiMode ciMode = null;
-	private AodArriveInfo aodArriveInfo;
-	private List<Byte> listKtStatus = new ArrayList<Byte>();
-	//需要定义用户信息状态
-	//private List<Client2serCommand> ciStack = new CopyOnWriteArrayList<Client2serCommand>();
-	//@RabbitHandler
+	private List<Byte> listDtStatus = new ArrayList<Byte>();//车站扣车状态列表
 	
 	public int getCi_mode() {
 		return ci_mode;
@@ -142,7 +95,7 @@ public class Tut5Receiver implements ReceiverInterface{
 			this.pstateArray.add(new PlatformState());//初始化扣车状态数组大小
 			this.skipStationArray.add(new PlatformState()); //初始化站台跳停状态数组大小
 			
-			this.listKtStatus.add((byte) 3);//初始化扣车状态数组大小，默认扣车状态为3，未扣车
+			this.listDtStatus.add((byte) 3);//初始化扣车状态数组大小，默认扣车状态为3，未扣车
 		}
 		
 	}
@@ -187,14 +140,6 @@ public class Tut5Receiver implements ReceiverInterface{
 			
 			if(tempmap.size()>0 && tempmap.containsKey("cmd_class") && !tempmap.get("cmd_class").toString().equals(""))
 			{	
-				if(tempmap.get("cmd_class").toString().equals("ci"))
-				{
-					cli2CuCmd = mapper.readValue(in, Cli2CuCmd.class);
-					if(cli2CuCmd != null){
-						saveCiCmdHistory(cli2CuCmd);//保存下发给CI的命令信息
-					}
-				}
-				
 				if(tempmap.get("cmd_class").toString().equals("atsmode"))
 				{
 					mode = mapper.readValue(in, AtsModeSwitch.class);
@@ -513,14 +458,14 @@ public class Tut5Receiver implements ReceiverInterface{
 	 * 获取新的流水号
 	 * @return
 	 */
-	public int getNewMagic(){
+	/*public int getNewMagic(){
 		int magic = 1000;//初始化值1000
 		CLient2serJsonCommand lastCommand = cmdRepository.findTop1ByOrderByIdDesc();
 		if(lastCommand != null && lastCommand.getMagic() < 65534){//最后一条记录的流水号小于65534时，则新流水号为在其基础上自增1，否则为初始值
 			magic = lastCommand.getMagic() + 1;
 		}
 		return magic;
-	}
+	}*/
 	
 	
 	/**
@@ -547,8 +492,10 @@ public class Tut5Receiver implements ReceiverInterface{
 			
 			if(skipStationState != null) //判断是否有扣车状态
 			{
-				Byte dtStatus = listKtStatus.get(cmd.getCmd_parameter().get(0) - 1);
-				if(dtStatus.equals(3)){//无扣车时才可以设置跳停
+				Byte dtStatus = listDtStatus.get(cmd.getCmd_parameter().get(0) - 1);
+				logger.info("dtStatus-> "+dtStatus);
+				
+				if(dtStatus == 3){//无扣车时才可以设置跳停
 					skipStationState.setClientnum(cmd.getClient_num());
 					skipStationState.setUsername(cmd.getUser_name());
 					if(cmd.getStationcontrol_cmd_type() == 102)
@@ -864,23 +811,20 @@ public class Tut5Receiver implements ReceiverInterface{
 					ciMode.setCi_mode(3);//设置控制模式为未知模式
 					ciModeService.save(ciMode);
 				}
-				/*List<SkipStationState> skipStationStateList = skipStationStateService.findAll();
-				if(skipStationStateList.size()>0)
-				for(SkipStationState skipStationState:skipStationStateList){
-					skipStationState.setDetainStatus((short) 0);
-					skipStationStateService.save(skipStationState);
-				}*/
 				
-				if(listKtStatus.size() > 0){//更新扣车状态为未扣车
+				if(listDtStatus.size() > 0){//更新扣车状态为未扣车
 					Boolean diff = false;
-					for(int i=0; i<listKtStatus.size(); i++){
-						if(!listKtStatus.get(i).equals(3)){
-							listKtStatus.set(i, (byte) 3);
+					for(int i=0; i<listDtStatus.size(); i++){
+						if(listDtStatus.get(i) != 3){
+							listDtStatus.set(i, (byte) 3);
 							diff = true;
 						}
 					}
 					if(diff == true){//扣车状态有变化，扣车状态信息发给运行任务runtask
-						logger.info("-> CAStatus change {}", listKtStatus);
+						String ret = restTemplate.getForObject("http://serv39-trainruntask/dtStatus?dtStatusStr={dtStatusStr}", String.class,mapper.writeValueAsString(listDtStatus));
+						
+						/*template.convertAndSend("topic.ats.traincontrol", "serv2cli.traincontrol.listDtStatus", mapper.writeValueAsString(listDtStatus));
+						logger.info("[CAStatus] send to serv39-runtask dtStatus {}", listDtStatus);*/
 					}
 				}
 				
@@ -917,12 +861,12 @@ public class Tut5Receiver implements ReceiverInterface{
 			List<Byte> ktStatus = CAStatus.getListDtStatus();
 			Boolean diff = false;
 			for(int i=0; i<ktStatus.size(); i++){
-				if(listKtStatus.size() > 0 && !listKtStatus.get(i).equals(ktStatus.get(i))){
-					listKtStatus.set(i, ktStatus.get(i));
+				if(listDtStatus.size() > 0 && listDtStatus.get(i) != ktStatus.get(i)){
+					listDtStatus.set(i, ktStatus.get(i));
 					diff = true;
 					
 					//------------有扣车，则取消跳停-------
-					if(ktStatus.get(i).byteValue() < 3){
+					if(ktStatus.get(i) < 3){
 						int platformId = i+1;
 						SkipStationState skipStationState = skipStationStateService.findByPlatformId(platformId);
 						if (skipStationState == null)// 初始化数据库数据
@@ -938,7 +882,9 @@ public class Tut5Receiver implements ReceiverInterface{
 				}
 			}
 			if(diff == true){//扣车状态有变化，扣车状态信息发给运行任务runtask
-				logger.info("-> CAStatus change {}", listKtStatus);
+				String ret = restTemplate.getForObject("http://serv39-trainruntask/dtStatus?dtStatusStr={dtStatusStr}", String.class,mapper.writeValueAsString(listDtStatus));
+				/*template.convertAndSend("topic.ats.traincontrol", "serv2cli.traincontrol.dtStatus", mapper.writeValueAsString(listDtStatus));
+				logger.info("[CAStatus] send to serv39-runtask dtStatus {}", listDtStatus);*/
 			}
 		} catch (JsonParseException e) {
 			// TODO Auto-generated catch block
