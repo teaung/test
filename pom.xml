@@ -26,11 +26,6 @@
 
 	<dependencies>
 		<dependency>
-			<groupId>com.byd.ats</groupId>
-			<artifactId>lib01-protocol-ats2ext</artifactId>
-			<version>0.1.2</version>
-		</dependency>
-		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-amqp</artifactId>
 		</dependency>
